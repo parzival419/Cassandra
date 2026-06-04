@@ -1,95 +1,91 @@
 <p align="center">
-  <img src="docs/assets/oasisai-banner.png" alt="OasisAI Banner" width="100%"/>
+  <img src="https://stageonecloudwebmedia.blob.core.windows.net/webdevmedia/cassandra-banner.png" alt="Cassandra Banner" width="100%"/>
 </p>
 
-<h1 align="center">OasisAI</h1>
+<h1 align="center">Cassandra</h1>
 <p align="center">
-  <strong>A self-hosted AI assistant built for real infrastructure management</strong>
+  <strong>It tried to warn you.</strong>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/platform-Discord-5865F2?style=flat-square&logo=discord&logoColor=white"/>
-  <img src="https://img.shields.io/badge/runtime-Hermes_Agent-FF6B35?style=flat-square"/>
-  <img src="https://img.shields.io/badge/models-Ollama-000000?style=flat-square&logo=ollama&logoColor=white"/>
-  <img src="https://img.shields.io/badge/automation-n8n-EA4B71?style=flat-square&logo=n8n&logoColor=white"/>
-  <img src="https://img.shields.io/badge/network-Tailscale-000000?style=flat-square&logo=tailscale&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/LLM-Ollama-000000?style=flat-square&logo=ollama&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Sentiment-VADER-4CAF50?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Data-yfinance-FF6B35?style=flat-square"/>
+  <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square"/>
   <img src="https://img.shields.io/badge/built_by-Stage_One_Cloud-7DD3FC?style=flat-square"/>
 </p>
 
 ---
 
-## What is OasisAI?
+## What is Cassandra?
 
-OasisAI is a fully self-hosted AI assistant that lives in Discord and manages real infrastructure. It combines local LLM inference, persistent memory, remote terminal access, and workflow automation — all running on a private home lab with zero cloud API dependency for core operations.
+Cassandra is a modular, AI-driven market intelligence pipeline that collects news, scores sentiment, screens equities, and generates structured investment narratives — using fully local LLM inference with no cloud API dependency.
 
-This isn't a chatbot wrapper. It's a working operations tool built to monitor, manage, and maintain servers and workstations across a network.
+In Greek mythology, Cassandra was cursed to see the future clearly and never be believed. This pipeline sees market signals. What you do with them is your problem.
 
-<p align="center">
-  <img src="docs/assets/discord-demo.png" alt="OasisAI Discord Demo" width="600"/>
-</p>
+Built as a real research tool — not a demo. Every design decision came from running it against live data and documenting what worked, what failed, and why.
 
 ---
 
 ## Key Capabilities
 
-**Conversational AI with Persistent Memory**
-OasisAI remembers context across sessions — user details, machine configurations, project history, and preferences. Every conversation builds on the last.
+**News Collection & Sentiment Scoring**
+Aggregates RSS feeds across six topic-specific channels — legalization, rescheduling, banking reform, ETFs, multi-state operators, and biomedical. Each article is deduplicated, body-extracted where possible, and scored with VADER sentiment analysis before anything touches the LLM.
 
-**Infrastructure Awareness**
-The assistant knows the network topology, server specs, running services, and machine roles. Ask it about your environment and it answers from lived context, not a web search.
+**LLM-Driven Market Narratives**
+Sends pre-scored article data to a local Ollama instance via HTTP API — no subprocess calls, no cloud dependency. Generates structured five-section investment intelligence reports including regulatory landscape, sector outlook, and key risks.
 
-**Remote Machine Management**
-Execute terminal commands on network machines directly from Discord. Check disk space, restart services, pull logs, monitor health — all through natural conversation.
+**Survival-Focused Equity Screening**
+Traditional screeners filter cannabis stocks on profitability — which eliminates ~80% of the sector. Cassandra scores on what actually matters for early-stage cannabis equities: cash survival, revenue trajectory, liquidity, momentum, and 52-week positioning.
 
-**Automated Monitoring & Alerting**
-Scheduled health checks across the network with Discord-based alerting. Proactive notifications before problems become outages.
+**Persistent Watchlist**
+Flagged candidates are written to a persistent CSV watchlist with entry price and date. The screener updates conviction scores on subsequent runs without losing historical entry data.
 
-**Workflow Automation**
-Integration with n8n for complex multi-step automations — system status dashboards, scheduled maintenance tasks, and external service integrations.
-
-**Secure Remote Access**
-Tailscale mesh VPN integration enables management from anywhere. Portable router support for on-site client deployments.
+**Sector-Agnostic Architecture**
+The pipeline is pointed at cannabis because of the Schedule III rescheduling catalyst — but the architecture is domain-agnostic. Swap the RSS feeds, ticker universe, and prompt templates to target any sector, asset class, or data domain.
 
 ---
 
 ## Architecture
 
 ```
-                         ┌──────────────┐
-                         │   Discord    │
-                         │   Server     │
-                         └──────┬───────┘
-                                │
-                    ┌───────────┴───────────┐
-                    │                       │
-              @OasisAI [chat]         ![command]
-                    │                       │
-                    ▼                       ▼
-            ┌──────────────┐       ┌──────────────┐
-            │   Hermes     │       │     n8n      │
-            │   Agent      │       │  Automation  │
-            │              │       │   Engine     │
-            │  ┌────────┐  │       └──────┬───────┘
-            │  │ Memory  │  │              │
-            │  │ Engine  │  │              │
-            │  └────────┘  │              │
-            └──────┬───────┘              │
-                   │                      │
-         ┌─────────┴──────────┐           │
-         │                    │           │
-         ▼                    ▼           ▼
-  ┌─────────────┐    ┌──────────────┐  ┌──────────┐
-  │   Atlas     │    │   Mercury    │  │ Client   │
-  │  (Server)   │    │  (Inference) │  │ Networks │
-  │             │    │              │  │          │
-  │  Ubuntu     │    │  Windows     │  │ Via      │
-  │  Hermes     │    │  Ollama      │  │ Tailscale│
-  │  n8n        │    │  Local LLMs  │  │          │
-  │  Tailscale  │    │  Tailscale   │  │          │
-  └─────────────┘    └──────────────┘  └──────────┘
+                    ┌─────────────────────────────┐
+                    │          CASSANDRA           │
+                    └──────────────┬──────────────┘
+                                   │
+          ┌────────────────────────┼────────────────────────┐
+          │                        │                        │
+          ▼                        ▼                        ▼
+┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+│    COLLECT       │    │    ANALYZE       │    │    SCREEN        │
+│                  │    │                  │    │                  │
+│ feed_to_csv_     │    │ ollama_sentiment_ │    │ stock_growth_    │
+│ collector.py     │    │ pipeline.py       │    │ screener.py      │
+│                  │    │                  │    │                  │
+│ • 6 topic feeds  │    │ • VADER stats    │    │ • yfinance data  │
+│ • Deduplication  │    │ • LLM narrative  │    │ • 6-dim scoring  │
+│ • Body extract   │    │ • 5-section      │    │ • Conviction     │
+│ • VADER/article  │    │   report         │    │   tiers          │
+│ • CSV output     │    │ • MD export      │    │ • Watchlist CSV  │
+└────────┬─────────┘    └────────┬─────────┘    └────────┬─────────┘
+         │                       │                        │
+         ▼                       ▼                        ▼
+  data/cannabis_          reports/sentiment_       reports/screener_
+  news_results.csv        report_[ts].md           report_[ts].md
+                                                   data/watchlist.csv
+         │                       │                        │
+         └───────────────────────┴────────────────────────┘
+                                 │
+                                 ▼
+                    ┌────────────────────────┐
+                    │    LOCAL OLLAMA LLM    │
+                    │   (no cloud API calls) │
+                    │   http://[host]:11434  │
+                    └────────────────────────┘
 ```
 
-OasisAI runs on a two-machine architecture. The **server node** handles the agent runtime, memory persistence, automation engine, and Discord gateway. The **inference node** runs Ollama with local LLM models, keeping all AI processing on the private network. A Tailscale mesh VPN extends management reach to remote client networks.
+Cassandra runs a three-stage pipeline. The **collector** pulls and scores news. The **sentiment pipeline** sends pre-analyzed data to a local Ollama instance for narrative generation. The **screener** pulls live equity data, scores candidates on survival metrics, and maintains a persistent watchlist — all without a single cloud API call for core operations.
 
 ---
 
@@ -97,13 +93,27 @@ OasisAI runs on a two-machine architecture. The **server node** handles the agen
 
 | Layer | Technology | Role |
 |---|---|---|
-| AI Runtime | Hermes Agent | Agent framework with memory, tool use, and gateway |
-| LLM Inference | Ollama | Local model serving (OpenAI-compatible API) |
-| Chat Interface | Discord | Primary user interface with threading |
-| Automation | n8n | Workflow automation and external integrations |
-| Networking | Tailscale | Mesh VPN for secure remote access |
-| Server OS | Ubuntu 26.04 | Production server platform |
-| Memory | Markdown-based | Persistent, human-readable, version-controllable |
+| News Collection | feedparser + BeautifulSoup | RSS aggregation and body extraction |
+| Sentiment Scoring | VADER | Per-article sentiment before LLM |
+| LLM Inference | Ollama (HTTP API) | Local narrative generation |
+| Equity Data | yfinance | Fundamentals and price history |
+| Data Layer | pandas + CSV | Pipeline state and watchlist persistence |
+| Runtime | Python 3.10+ | Core pipeline language |
+
+---
+
+## Scoring Model
+
+| Dimension | Weight | Rationale |
+|---|---|---|
+| Price tier | 20pts | Sweet spot $0.10–$10 for high-potential names |
+| Liquidity | 15pts | Avg daily volume — can you actually trade it? |
+| Cash survival | 25pts | Cash-to-debt ratio — who lives long enough to win? |
+| Revenue trajectory | 20pts | Growth rate, even if not yet profitable |
+| Price momentum | 10pts | 1-month price change |
+| 52w positioning | 10pts | Distance from high — room to run vs broken chart |
+
+**Conviction tiers**: HIGH (65+) · MEDIUM (45–64) · LOW (40–44) · SKIP (<40)
 
 ---
 
@@ -111,40 +121,74 @@ OasisAI runs on a two-machine architecture. The **server node** handles the agen
 
 | Feature | Status |
 |---|---|
-| Discord integration with threading | ✅ Complete |
-| Persistent memory across sessions | ✅ Complete |
-| Custom persona (SOUL.md) | ✅ Complete |
-| Tailscale mesh VPN | ✅ Complete |
-| Remote terminal execution | 🔧 In Progress |
-| n8n command workflows | 🔧 In Progress |
-| Automated health monitoring | 📋 Planned |
-| Multi-client network management | 📋 Planned |
-| ElevenLabs voice integration | 📋 Planned |
-| Slash commands | 📋 Planned |
+| RSS collection across 6 topic channels | ✅ Complete |
+| VADER per-article sentiment scoring | ✅ Complete |
+| Ollama HTTP API integration | ✅ Complete |
+| Survival-focused equity screener | ✅ Complete |
+| Persistent watchlist with entry prices | ✅ Complete |
+| Timestamped markdown report export | ✅ Complete |
+| Social media data layer (Reddit/X) | 📋 Planned |
+| Exit signal generation | 📋 Planned |
+| Google News URL body resolver | 📋 Planned |
+| Domain-agnostic config system | 📋 Planned |
+| Sports application (MLB Stats API) | 📋 Planned |
+| Scheduled runs via cron/Task Scheduler | 📋 Planned |
+| OasisAI Discord alert integration | 📋 Planned |
 
 ---
 
-## Screenshots
+## Honest Disclaimer
 
-<p align="center">
-  <img src="docs/assets/memory-recall.png" alt="Memory Recall" width="45%"/>
-  &nbsp;&nbsp;
-  <img src="docs/assets/discord-thread.png" alt="Discord Threading" width="45%"/>
-</p>
+Cassandra is a research and portfolio tool — not a trading system.
 
-<p align="center">
-  <em>Left: OasisAI recalling infrastructure details from persistent memory. Right: Automatic thread creation for organized conversations.</em>
-</p>
+The v1 of this project flagged IGC Pharma during the cannabis Schedule III rescheduling catalyst in 2024. A $20 test position was opened at $0.42. Current price: ~$0.30.
+
+The entry signal was real. The exit signal didn't exist yet. That's why v2 exists.
+
+*This is not financial advice. Past pipeline output does not guarantee future returns.*
 
 ---
 
-## Why Self-Hosted?
+## Quick Start
 
-- **Data sovereignty** — All conversations, memory, and infrastructure data stay on your network
-- **No recurring API costs** for core operations — inference runs on hardware you own
-- **Full customization** — persona, memory, tools, and workflows are all configurable
-- **Network-aware** — the assistant understands your actual infrastructure, not generic cloud resources
-- **Portable** — the entire stack can be replicated for client deployments
+```bash
+# Clone
+git clone https://github.com/parzival419/cassandra.git
+cd cassandra
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Step 1 — Collect and score news
+python feed_to_csv_collector.py
+
+# Step 2 — Generate sentiment narrative
+OLLAMA_HOST=http://localhost:11434 python ollama_sentiment_pipeline.py
+
+# Step 3 — Screen equities and update watchlist
+OLLAMA_HOST=http://localhost:11434 python stock_growth_screener.py
+```
+
+**Running Ollama on a separate machine:**
+```bash
+# On the inference machine — bind to all interfaces
+OLLAMA_HOST=0.0.0.0 ollama serve
+
+# Point Cassandra at it
+OLLAMA_HOST=http://192.168.1.x:11434 python ollama_sentiment_pipeline.py
+```
+
+---
+
+## Configuration
+
+| Variable | Default | Description |
+|---|---|---|
+| `OLLAMA_HOST` | `http://localhost:11434` | Ollama server address |
+| `OLLAMA_MODEL` | `qwen2.5:7b` | Model for analysis |
+| `MAX_PRICE` | `15.0` | Max stock price for screening |
+| `MAX_AGE_DAYS` | `60` | News lookback window |
+| `WATCHLIST_MIN_SCORE` | `40` | Minimum score for watchlist entry |
 
 ---
 
@@ -154,6 +198,12 @@ OasisAI runs on a two-machine architecture. The **server node** handles the agen
 
 ---
 
+## Related Projects
+
+- [OasisAI](https://github.com/parzival419/oasisAi) — Self-hosted Discord AI assistant with local LLM inference, persistent memory, and remote infrastructure management
+
+---
+
 <p align="center">
-  <sub>OasisAI is a proprietary project by Stage One Cloud. This repository serves as a project overview and portfolio piece. Implementation details, configurations, and deployment guides are not included.</sub>
+  <sub>Cassandra is an open-source project by Stage One Cloud. MIT licensed — use it, fork it, point it at something other than cannabis stocks. Just don't blame Cassandra when it's right and you don't listen.</sub>
 </p>
