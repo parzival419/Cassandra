@@ -2,11 +2,6 @@
   <img src="https://stageonecloudwebmedia.blob.core.windows.net/webdevmedia/cassandra_banner.png" alt="Cassandra Banner" width="100%"/>
 </p>
 
-<h1 align="center">Cassandra</h1>
-<p align="center">
-  <strong>It tried to warn you.</strong>
-</p>
-
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white"/>
   <img src="https://img.shields.io/badge/LLM-Ollama-000000?style=flat-square&logo=ollama&logoColor=white"/>
