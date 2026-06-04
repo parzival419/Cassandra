@@ -46,7 +46,7 @@ The pipeline is pointed at cannabis because of the Schedule III rescheduling cat
 
 ```
                     ┌─────────────────────────────┐
-                    │          CASSANDRA           │
+                    │          CASSANDRA          │
                     └──────────────┬──────────────┘
                                    │
           ┌────────────────────────┼────────────────────────┐
