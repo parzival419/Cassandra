@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://stageonecloudwebmedia.blob.core.windows.net/webdevmedia/cassandra-banner.png" alt="Cassandra Banner" width="100%"/>
+  <img src="https://stageonecloudwebmedia.blob.core.windows.net/webdevmedia/cassandra_banner.png" alt="Cassandra Banner" width="100%"/>
 </p>
 
 <h1 align="center">Cassandra</h1>
