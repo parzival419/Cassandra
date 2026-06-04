@@ -1,133 +1,258 @@
-import pandas as pd
-import subprocess
+"""
+ollama_sentiment_pipeline.py
+-----------------------------
+Reads the collected news CSV, computes aggregate VADER sentiment statistics,
+then sends a structured prompt to a local Ollama instance via HTTP API
+for deeper LLM-based narrative analysis. Saves a markdown report.
+"""
+
+import json
 import os
-from datetime import datetime, timedelta
+import sys
+from datetime import datetime
 
-# -----------------------------
+import pandas as pd
+import requests
+
+# ---------------------------------------------------------------------------
 # Configuration
-# -----------------------------
-CSV_PATH = r"F:\\Code_output\\cannabis_news_results.csv"
-MODEL = "llama2-uncensored"
-REPORT_PATH = "sentiment_analysis.md"
+# ---------------------------------------------------------------------------
+
+DATA_DIR    = os.path.join(os.path.dirname(__file__), "data")
+INPUT_CSV   = os.path.join(DATA_DIR, "cannabis_news_results.csv")
+REPORT_DIR  = os.path.join(os.path.dirname(__file__), "reports")
+
+OLLAMA_HOST  = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")  # override via env var
+
+MAX_ARTICLES_FOR_LLM = 40   # keep prompt size reasonable
+MAX_BODY_CHARS       = 600  # truncate long bodies before sending to LLM
+
+# ---------------------------------------------------------------------------
+# Data loading & VADER aggregation
+# ---------------------------------------------------------------------------
+
+def load_data(path: str, max_age_days: int = 60) -> pd.DataFrame:
+    if not os.path.exists(path):
+        print(f"❌ Input file not found: {path}")
+        print("   Run feed_to_csv_collector.py first.")
+        sys.exit(1)
+
+    df = pd.read_csv(path)
+    print(f"✅ Loaded {len(df)} articles from {path}")
+
+    df["published"] = pd.to_datetime(df["published"], errors="coerce", utc=True)
+    df = df.dropna(subset=["published"])
+
+    cutoff = pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=max_age_days)
+    df = df[df["published"] >= cutoff]
+    print(f"🕒 {len(df)} articles within the last {max_age_days} days")
+    return df
 
 
-def load_news_data(path, max_age_days=180):
-    try:
-        df = pd.read_csv(path)
-        print(f"✅ Loaded {len(df)} total articles from {path}")
+def compute_vader_summary(df: pd.DataFrame) -> dict:
+    """Aggregate VADER scores already computed by the collector."""
+    if "sentiment_compound" not in df.columns:
+        return {}
 
-        # Ensure 'Published' is a datetime column
-        df['Published'] = pd.to_datetime(df['Published'], errors='coerce')
+    label_counts = df["sentiment_label"].value_counts().to_dict() if "sentiment_label" in df.columns else {}
+    avg_compound  = df["sentiment_compound"].mean()
+    topic_sentiment = (
+        df.groupby("topic")["sentiment_compound"]
+        .mean()
+        .round(4)
+        .to_dict()
+    )
 
-        # Filter out rows with invalid or missing dates
-        df = df.dropna(subset=["Published"])
+    return {
+        "total_articles"  : len(df),
+        "label_counts"    : label_counts,
+        "avg_compound"    : round(avg_compound, 4),
+        "overall_label"   : "positive" if avg_compound >= 0.05 else ("negative" if avg_compound <= -0.05 else "neutral"),
+        "topic_sentiment" : topic_sentiment,
+    }
 
-        # Keep only rows within the last 180 days
-        cutoff = datetime.now() - timedelta(days=max_age_days)
-        recent_df = df[df["Published"] >= cutoff]
 
-        print(f"🕒 Retained {len(recent_df)} articles from the last {max_age_days} days")
-        return recent_df
+# ---------------------------------------------------------------------------
+# Prompt construction
+# ---------------------------------------------------------------------------
 
-    except Exception as e:
-        print(f"❌ Failed to load or filter data: {e}")
-        return pd.DataFrame()
+def build_prompt(df: pd.DataFrame, vader_summary: dict) -> str:
+    subset = df.head(MAX_ARTICLES_FOR_LLM)
 
-def prepare_prompt(news_df, max_articles=50):
-    subset = news_df.head(max_articles)
-    combined = ""
+    articles_block = ""
+    for _, row in subset.iterrows():
+        title  = str(row.get("title", "")).strip()
+        body   = str(row.get("body", "")).strip()
+        source = str(row.get("source", "")).strip()
+        label  = str(row.get("sentiment_label", "")).strip()
+        score  = row.get("sentiment_compound", 0)
+        topic  = str(row.get("topic", "")).strip()
 
-    for idx, row in subset.iterrows():
-        title = row.get("Title", "").strip()
-        body = row.get("Body", "").strip()
-        link = row.get("Link", "").strip()
+        short_body = (body[:MAX_BODY_CHARS] + "...") if len(body) > MAX_BODY_CHARS else body
 
-        if not body:
-            continue  # Skip empty articles
-
-        # Truncate body if it's too long
-        short_body = (body[:800] + "...") if len(body) > 800 else body
-
-        combined += (
+        articles_block += (
             f"---\n"
-            f"📰 **Title:** {title}\n"
-            f"📝 **Summary:** {short_body}\n"
-            f"🔗 **Link:** {link}\n"
+            f"Topic     : {topic}\n"
+            f"Title     : {title}\n"
+            f"Source    : {source}\n"
+            f"Sentiment : {label} ({score:+.3f})\n"
         )
+        if short_body:
+            articles_block += f"Body      : {short_body}\n"
 
-    prompt = f"""
-You are a seasoned policy and financial analyst. Carefully analyze the following cannabis-related news articles.
+    vader_block = ""
+    if vader_summary:
+        vader_block = f"""
+Pre-computed VADER sentiment statistics:
+- Total articles analyzed : {vader_summary.get('total_articles', 'N/A')}
+- Overall sentiment       : {vader_summary.get('overall_label', 'N/A')} (avg compound: {vader_summary.get('avg_compound', 0):+.4f})
+- Label breakdown         : {vader_summary.get('label_counts', {})}
+- Sentiment by topic      :
+"""
+        for topic, score in vader_summary.get("topic_sentiment", {}).items():
+            vader_block += f"    {topic[:50]:50s} {score:+.4f}\n"
 
-Your Task:
+    prompt = f"""You are a senior financial and policy analyst specializing in cannabis sector equities.
 
-Provide a comprehensive analysis of the following cannabis-related news articles. Your response should include:
+{vader_block}
 
-1. **Overall Sentiment** — Classify the general tone of recent cannabis news as **positive**, **negative**, or **mixed**, based on the mood of headlines and reporting.
+Your task is to analyze the following {len(subset)} cannabis-related news articles and produce a structured investment intelligence report.
 
-2. **500-Word Summary** — Deliver a detailed narrative summarizing public and investor sentiment. Highlight major themes, tone shifts, emotional cues, and key headlines influencing market perception.
+Your report MUST include these sections:
 
-3. **Regulatory and Political Insights** — Summarize any developments in U.S. federal or state cannabis legislation, DEA scheduling, or banking reform efforts (such as the SAFER Banking Act).
+1. OVERALL SENTIMENT
+   Classify the general tone as positive, negative, or mixed. Reference the VADER statistics above and explain whether the LLM reading agrees or diverges.
 
-4. **Investment Outlook** — Assess the current investment climate for cannabis-related equities.  
-   - Distinguish between **retail-focused** cannabis companies (dispensaries, MSOs, consumer brands) and **biomedical or pharmaceutical** cannabis firms.  
-   - Provide a sentiment-driven perspective on whether it is advisable to invest in each category based on recent banking and regulatory news.
+2. NARRATIVE SUMMARY (400-500 words)
+   Describe the dominant themes, tone shifts, and storylines driving cannabis news right now. What is the market narrative?
 
-5. **Medical and Scientific Advances** — Identify and briefly describe any recent biomedical or research-driven advancements related to cannabis or cannabinoids.
+3. REGULATORY & POLITICAL LANDSCAPE
+   Summarize any developments in Schedule III rescheduling, SAFER Banking Act, state-level legalization, or DEA/FDA actions.
 
-6. **Story Count** — State how many news articles were reviewed for this analysis.
+4. INVESTMENT OUTLOOK
+   Separate your analysis into two categories:
+   a) Multi-state operators and retail cannabis (dispensaries, MSOs)
+   b) Biomedical and pharmaceutical cannabis (clinical trials, drug development)
+   For each: what does recent news imply about near-term risk and opportunity?
 
+5. KEY RISKS TO WATCH
+   List 3-5 specific risks that could invalidate a bullish thesis on cannabis equities right now.
 
-Below are {len(subset)} articles:
+6. ARTICLES REVIEWED
+   State how many articles were analyzed.
 
-{combined}
+Articles:
+{articles_block}
 """
     return prompt.strip()
 
 
-def run_ollama_analysis(prompt, model):
+# ---------------------------------------------------------------------------
+# Ollama HTTP API call
+# ---------------------------------------------------------------------------
+
+def call_ollama(prompt: str, model: str, host: str) -> str:
+    url = f"{host}/api/generate"
+    payload = {
+        "model"  : model,
+        "prompt" : prompt,
+        "stream" : False,
+    }
+
+    print(f"\n🧠 Sending to Ollama ({model}) at {host}...")
     try:
-        print("\n\U0001f9e0 Running sentiment analysis with Ollama...\n")
-        result = subprocess.run(
-            ["ollama", "run", model],
-            input=prompt,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace"
-        )
+        response = requests.post(url, json=payload, timeout=300)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("response", "").strip()
 
-        if result.returncode != 0:
-            print("❌ Ollama failed to run. Error:")
-            print(result.stderr)
-            return None
-
-        return result.stdout.strip()
-
+    except requests.exceptions.ConnectionError:
+        print(f"❌ Could not connect to Ollama at {host}")
+        print("   Make sure Ollama is running: `ollama serve`")
+        sys.exit(1)
+    except requests.exceptions.Timeout:
+        print("❌ Ollama request timed out (300s). Try a smaller model.")
+        sys.exit(1)
     except Exception as e:
-        print(f"❌ Ollama subprocess error: {e}")
-        return None
+        print(f"❌ Ollama API error: {e}")
+        sys.exit(1)
 
-def save_report(text, path):
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            f.write("# \U0001f9fe Cannabis News Sentiment Analysis\n\n")
-            f.write(text)
-        print(f"📄 Report saved to {path}")
-    except Exception as e:
-        print(f"❌ Failed to save report: {e}")
+
+# ---------------------------------------------------------------------------
+# Report saving
+# ---------------------------------------------------------------------------
+
+def save_report(llm_text: str, vader_summary: dict, model: str) -> str:
+    os.makedirs(REPORT_DIR, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    report_path = os.path.join(REPORT_DIR, f"sentiment_report_{timestamp}.md")
+
+    label_counts = vader_summary.get("label_counts", {})
+    topic_lines  = "\n".join(
+        f"| {t[:55]:55s} | {s:+.4f} |"
+        for t, s in vader_summary.get("topic_sentiment", {}).items()
+    )
+
+    header = f"""# 🌿 Cannabis Market Sentiment Report
+**Generated**: {datetime.now().strftime("%Y-%m-%d %H:%M")}
+**Model**: {model}
+**Articles analyzed**: {vader_summary.get('total_articles', 'N/A')}
+
+## VADER Pre-Analysis
+| Metric | Value |
+|--------|-------|
+| Overall label | {vader_summary.get('overall_label', 'N/A')} |
+| Avg compound score | {vader_summary.get('avg_compound', 0):+.4f} |
+| Positive articles | {label_counts.get('positive', 0)} |
+| Neutral articles  | {label_counts.get('neutral', 0)} |
+| Negative articles | {label_counts.get('negative', 0)} |
+
+### Sentiment by Topic
+| Topic | Avg Compound |
+|-------|-------------|
+{topic_lines}
+
+---
+
+## LLM Analysis
+
+{llm_text}
+"""
+
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write(header)
+
+    return report_path
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
 def main():
-    df = load_news_data(CSV_PATH)
+    df = load_data(INPUT_CSV)
+
     if df.empty:
-        return
+        print("❌ No articles to analyze after date filtering.")
+        sys.exit(1)
 
-    prompt = prepare_prompt(df)
-    result = run_ollama_analysis(prompt, MODEL)
+    vader_summary = compute_vader_summary(df)
 
-    if result:
-        print("\n📈 Sentiment Analysis Result:\n")
-        print(result)
-        save_report(result, REPORT_PATH)
+    print("\n📊 VADER Summary:")
+    print(f"   Overall : {vader_summary.get('overall_label')} ({vader_summary.get('avg_compound'):+.4f})")
+    for label, count in vader_summary.get("label_counts", {}).items():
+        print(f"   {label:10s}: {count}")
+
+    prompt      = build_prompt(df, vader_summary)
+    llm_output  = call_ollama(prompt, OLLAMA_MODEL, OLLAMA_HOST)
+
+    print("\n📈 LLM Analysis:\n")
+    print(llm_output)
+
+    report_path = save_report(llm_output, vader_summary, OLLAMA_MODEL)
+    print(f"\n📄 Report saved → {report_path}")
+
 
 if __name__ == "__main__":
     main()
