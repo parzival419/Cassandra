@@ -60,8 +60,8 @@ The pipeline is pointed at cannabis because of the Schedule III rescheduling cat
 ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
 │    COLLECT       │    │    ANALYZE       │    │    SCREEN        │
 │                  │    │                  │    │                  │
-│ feed_to_csv_     │    │ ollama_sentiment_ │    │ stock_growth_    │
-│ collector.py     │    │ pipeline.py       │    │ screener.py      │
+│ feed_to_csv_     │    │ ollama_sentiment │    │ stock_growth_    │
+│ collector.py     │    │ pipeline.py      │    │ screener.py      │
 │                  │    │                  │    │                  │
 │ • 6 topic feeds  │    │ • VADER stats    │    │ • yfinance data  │
 │ • Deduplication  │    │ • LLM narrative  │    │ • 6-dim scoring  │
