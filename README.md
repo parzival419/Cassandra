@@ -64,8 +64,8 @@ The pipeline is pointed at cannabis because of the Schedule III rescheduling cat
 │ • VADER/article  │    │   report         │    │   tiers          │
 │ • CSV output     │    │ • MD export      │    │ • Watchlist CSV  │
 └────────┬─────────┘    └────────┬─────────┘    └────────┬─────────┘
-         │                       │                        │
-         ▼                       ▼                        ▼
+         │                       │                       │
+         ▼                       ▼                       ▼
   data/cannabis_          reports/sentiment_       reports/screener_
   news_results.csv        report_[ts].md           report_[ts].md
                                                    data/watchlist.csv
