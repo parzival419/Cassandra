@@ -1,8 +1,10 @@
 """
 feed_to_csv_collector.py
 ------------------------
-Collects cannabis-related news from RSS feeds, extracts article bodies,
+Collects topic-related news from RSS feeds, extracts article bodies,
 scores sentiment with VADER, and saves results to CSV for downstream analysis.
+
+To target a different domain, edit only the CONFIG section below.
 """
 
 import feedparser
@@ -18,56 +20,52 @@ from typing import List, Dict, Optional
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # ---------------------------------------------------------------------------
-# Configuration
+# CONFIG — edit this block to target a different domain/topic
 # ---------------------------------------------------------------------------
 
+TOPIC_LABEL = "mlb_lockout"                        # used in filenames and display text
+BOT_USER_AGENT = "Mozilla/5.0 (compatible; MarketIntelBot/2.0)"
+
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "data")
-OUTPUT_FILE = os.path.join(OUTPUT_DIR, "cannabis_news_results.csv")
+OUTPUT_FILE = os.path.join(OUTPUT_DIR, f"{TOPIC_LABEL}_news_results.csv")
 
 MAX_AGE_DAYS = 60
 MAX_ARTICLES_PER_FEED = 30
 BODY_FETCH_TIMEOUT = 10
 MIN_PARAGRAPH_LENGTH = 60
 
-KEYWORDS = [
-    "marijuana", "cannabis", "weed", "THC", "CBD",
-    "rescheduling", "Schedule III", "SAFER Banking",
-    "MSO", "dispensary", "legalization"
+# Keywords used to filter general feeds (case-insensitive title match)
+KEYWORDS: List[str] = [
+    "MLB", "lockout", "CBA", "collective bargaining",
+    "MLBPA", "Rob Manfred", "free agency", "baseball strike",
+    "players union", "spring training", "MLB negotiations",
 ]
 
-# ---------------------------------------------------------------------------
-# RSS Feed Map — one entry per topic, multiple feeds per topic
-# ---------------------------------------------------------------------------
-
+# Topic-specific RSS feeds: {human-readable topic: [feed urls]}
 RSS_FEED_MAP: Dict[str, List[str]] = {
-    "cannabis legalization USA": [
-        "https://news.google.com/rss/search?q=cannabis+legalization+USA",
-        "https://www.marijuanamoment.net/feed/",
-        "https://www.cannabisbusinesstimes.com/rss/",
+    "MLB lockout CBA negotiations": [
+        "https://news.google.com/rss/search?q=MLB+lockout+CBA+negotiations",
+        "https://news.google.com/rss/search?q=MLB+collective+bargaining+agreement",
     ],
-    "marijuana rescheduling Schedule III DEA": [
-        "https://news.google.com/rss/search?q=marijuana+rescheduling+Schedule+III+DEA",
-        "https://news.google.com/rss/search?q=DEA+cannabis+Schedule+III+2024",
+    "MLBPA players union": [
+        "https://news.google.com/rss/search?q=MLBPA+players+union+baseball",
+        "https://news.google.com/rss/search?q=MLB+players+association+demands",
     ],
-    "SAFER Banking Act cannabis": [
-        "https://news.google.com/rss/search?q=SAFER+Banking+Act+cannabis",
-        "https://news.google.com/rss/search?q=cannabis+banking+reform+Congress",
+    "MLB free agency spring training": [
+        "https://news.google.com/rss/search?q=MLB+free+agency+lockout+spring+training",
+        "https://news.google.com/rss/search?q=MLB+spring+training+cancelled+delayed",
     ],
-    "cannabis ETF MSOS investment": [
-        "https://news.google.com/rss/search?q=cannabis+ETF+MSOS+investment",
-        "https://news.google.com/rss/search?q=cannabis+stocks+investor+outlook",
+    "Rob Manfred MLB commissioner": [
+        "https://news.google.com/rss/search?q=Rob+Manfred+MLB+lockout",
+        "https://news.google.com/rss/search?q=MLB+commissioner+labor+deal",
     ],
-    "multi-state operators cannabis": [
-        "https://news.google.com/rss/search?q=multi-state+operators+cannabis+MSO",
-        "https://news.google.com/rss/search?q=cannabis+dispensary+earnings+revenue",
-    ],
-    "cannabis biomedical pharmaceutical": [
-        "https://news.google.com/rss/search?q=cannabis+biomedical+clinical+trial",
-        "https://news.google.com/rss/search?q=cannabinoid+pharmaceutical+FDA",
+    "MLB revenue sharing salary cap": [
+        "https://news.google.com/rss/search?q=MLB+salary+cap+revenue+sharing+lockout",
+        "https://news.google.com/rss/search?q=baseball+minimum+salary+arbitration+reform",
     ],
 }
 
-# General feeds scanned for keyword matches
+# General feeds scanned for KEYWORDS matches
 GENERAL_RSS_FEEDS: List[str] = [
     "https://feeds.reuters.com/reuters/topNews",
     "https://feeds.apnews.com/apf-topnews",
@@ -84,12 +82,10 @@ analyzer = SentimentIntensityAnalyzer()
 
 
 def make_hash(s: str) -> str:
-    """Short SHA1 fingerprint for deduplication."""
     return hashlib.sha1(s.encode("utf-8", errors="ignore")).hexdigest()[:12]
 
 
 def score_sentiment(text: str) -> Dict[str, float]:
-    """Run VADER on text; returns compound, pos, neu, neg scores."""
     if not text:
         return {"compound": 0.0, "pos": 0.0, "neu": 0.0, "neg": 0.0}
     scores = analyzer.polarity_scores(text)
@@ -102,7 +98,6 @@ def score_sentiment(text: str) -> Dict[str, float]:
 
 
 def sentiment_label(compound: float) -> str:
-    """Convert VADER compound score to human-readable label."""
     if compound >= 0.05:
         return "positive"
     elif compound <= -0.05:
@@ -111,17 +106,12 @@ def sentiment_label(compound: float) -> str:
 
 
 def extract_article_body(url: str, timeout: int = BODY_FETCH_TIMEOUT) -> Optional[str]:
-    """
-    Fetch and extract the main text body of an article URL.
-    Returns None on failure or if content is too thin.
-    """
     try:
-        headers = {"User-Agent": "Mozilla/5.0 (compatible; MarketIntelBot/2.0)"}
+        headers = {"User-Agent": BOT_USER_AGENT}
         response = requests.get(url, headers=headers, timeout=timeout)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, "html.parser")
 
-        # Remove noise elements
         for tag in soup(["script", "style", "nav", "footer", "aside", "header"]):
             tag.decompose()
 
@@ -131,8 +121,7 @@ def extract_article_body(url: str, timeout: int = BODY_FETCH_TIMEOUT) -> Optiona
             if len(p.get_text(strip=True)) > MIN_PARAGRAPH_LENGTH
         ]
 
-        body = " ".join(paragraphs)
-        body = re.sub(r"\s+", " ", body).strip()
+        body = re.sub(r"\s+", " ", " ".join(paragraphs)).strip()
         return body if len(body) > 200 else None
 
     except Exception:
@@ -140,10 +129,6 @@ def extract_article_body(url: str, timeout: int = BODY_FETCH_TIMEOUT) -> Optiona
 
 
 def parse_entry(entry, topic: str, seen: set, max_age: datetime) -> Optional[Dict]:
-    """
-    Parse a single feedparser entry into a row dict.
-    Returns None if the entry should be skipped.
-    """
     title = (getattr(entry, "title", "") or "").strip()
     link = (getattr(entry, "link", "") or "").strip()
     published_raw = getattr(entry, "published", "") or getattr(entry, "updated", "") or ""
@@ -156,7 +141,6 @@ def parse_entry(entry, topic: str, seen: set, max_age: datetime) -> Optional[Dic
     if not title or not link:
         return None
 
-    # Date filter
     try:
         published_dt = date_parser.parse(published_raw)
         if published_dt.tzinfo is None:
@@ -166,7 +150,6 @@ def parse_entry(entry, topic: str, seen: set, max_age: datetime) -> Optional[Dic
     except Exception:
         return None
 
-    # Deduplication
     key = make_hash(title + "|" + link)
     if key in seen:
         return None
@@ -187,15 +170,13 @@ def parse_entry(entry, topic: str, seen: set, max_age: datetime) -> Optional[Dic
 # ---------------------------------------------------------------------------
 
 def collect_topic_feeds(max_age: datetime, seen: set) -> List[Dict]:
-    """Pull articles from all topic-specific RSS feeds."""
     rows = []
     for topic, urls in RSS_FEED_MAP.items():
         for url in urls:
             print(f"  → [{topic[:40]}] {url}")
             try:
                 feed = feedparser.parse(url)
-                entries = (feed.entries or [])[:MAX_ARTICLES_PER_FEED]
-                for entry in entries:
+                for entry in (feed.entries or [])[:MAX_ARTICLES_PER_FEED]:
                     row = parse_entry(entry, topic, seen, max_age)
                     if row:
                         rows.append(row)
@@ -205,15 +186,13 @@ def collect_topic_feeds(max_age: datetime, seen: set) -> List[Dict]:
 
 
 def collect_general_feeds(max_age: datetime, seen: set) -> List[Dict]:
-    """Scan general news RSS feeds and keep keyword-matching articles."""
     rows = []
     kw_lower = [k.lower() for k in KEYWORDS]
     for url in GENERAL_RSS_FEEDS:
         print(f"  → [general] {url}")
         try:
             feed = feedparser.parse(url)
-            entries = (feed.entries or [])[:MAX_ARTICLES_PER_FEED]
-            for entry in entries:
+            for entry in (feed.entries or [])[:MAX_ARTICLES_PER_FEED]:
                 title = (getattr(entry, "title", "") or "").lower()
                 if not any(k in title for k in kw_lower):
                     continue
@@ -226,17 +205,12 @@ def collect_general_feeds(max_age: datetime, seen: set) -> List[Dict]:
 
 
 def enrich_with_body_and_sentiment(rows: List[Dict]) -> List[Dict]:
-    """
-    For each row, fetch the article body and compute VADER sentiment.
-    Scores title-only sentiment as fallback when body fetch fails.
-    """
     total = len(rows)
     for i, row in enumerate(rows, 1):
         print(f"  Enriching {i}/{total}: {row['title'][:60]}...")
         body = extract_article_body(row["link"])
         row["body"] = body or ""
 
-        # Score on body if available, fall back to title
         text_to_score = body if body else row["title"]
         scores = score_sentiment(text_to_score)
         row["sentiment_compound"] = scores["compound"]
@@ -258,7 +232,7 @@ def main():
     max_age = datetime.now(timezone.utc) - timedelta(days=MAX_AGE_DAYS)
     seen: set = set()
 
-    print("\n📡 Collecting topic feeds...")
+    print(f"\n📡 Collecting topic feeds for: {TOPIC_LABEL}")
     rows = collect_topic_feeds(max_age, seen)
 
     print("\n🌐 Scanning general feeds for keyword matches...")
@@ -273,24 +247,22 @@ def main():
 
     df = pd.DataFrame(rows)
 
-    # Reorder columns for readability
     col_order = [
         "topic", "title", "source", "published",
         "sentiment_label", "sentiment_compound",
         "sentiment_pos", "sentiment_neu", "sentiment_neg",
-        "body_fetched", "body", "link", "key"
+        "body_fetched", "body", "link", "key",
     ]
     df = df[[c for c in col_order if c in df.columns]]
 
     df.to_csv(OUTPUT_FILE, index=False)
     print(f"\n💾 Saved {len(df)} articles → {OUTPUT_FILE}")
 
-    # Quick sentiment summary
     label_counts = df["sentiment_label"].value_counts()
     avg_compound = df["sentiment_compound"].mean()
     body_rate = df["body_fetched"].mean() * 100
 
-    print("\n📊 Sentiment Summary:")
+    print(f"\n📊 Sentiment Summary ({TOPIC_LABEL}):")
     for label, count in label_counts.items():
         print(f"   {label:10s}: {count}")
     print(f"   Avg compound score : {avg_compound:.4f}")
