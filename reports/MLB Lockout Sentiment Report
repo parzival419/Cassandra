@@ -1,0 +1,65 @@
+# MLB Lockout Sentiment Report
+**Generated**: 2026-06-07 10:39
+**Model**: qwen2.5:7b
+**Articles analyzed**: 87
+
+## VADER Pre-Analysis
+| Metric | Value |
+|--------|-------|
+| Overall label | negative |
+| Avg compound score | -0.1403 |
+| Positive articles | 11 |
+| Neutral articles  | 39 |
+| Negative articles | 37 |
+
+### Sentiment by Topic
+| Topic | Avg Compound |
+|-------|-------------|
+| MLB lockout CBA negotiations                            | -0.0978 |
+| MLB revenue sharing salary cap                          | -0.0886 |
+| MLBPA players union                                     | -0.1057 |
+| Rob Manfred MLB commissioner                            | -0.4275 |
+
+---
+
+## LLM Analysis
+
+### Intelligence Report on MLB Lockout CBA Negotiations
+
+#### 1. OVERALL SENTIMENT
+The overall sentiment of the articles analyzed is negative, with an average compound score of -0.1403. The majority of the articles have a negative or neutral tone, with only a few showing positive inclinations. This aligns with the pre-computed VADER statistics, which also indicate that 85% of the articles are either neutral or negative in sentiment.
+
+#### 2. NARRATIVE SUMMARY
+The dominant themes surrounding MLB lockout CBA negotiations revolve around concerns over a potential labor dispute and the complex nature of the discussions between the Major League Baseball Players Association (MLBPA) and league management, particularly centered on issues like salary caps and revenue sharing. The tone shifts frequently from cautious optimism to pessimism, with several articles warning about the dire consequences of failing to reach an agreement.
+
+The prevailing narrative is one of uncertainty and risk, as highlighted by statements from key figures such as Rob Manfred expressing concerns over a potential lockout. Players' unions are often portrayed as resistant to any proposals that could negatively impact their members, while owners are depicted as pushing for reforms they believe will protect the league's financial health.
+
+#### 3. LABOR & NEGOTIATION LANDSCAPE
+The CBA negotiations have seen several key developments:
+- **Salary Cap**: The introduction of a salary cap has been a central issue, with initial proposals from both sides showing significant divergence. Owners are keen on implementing it to address competitive balance and financial stability concerns, while players view it as detrimental to their paychecks.
+- **Revenue Sharing**: Discussions around revenue sharing continue, though the exact details remain elusive.
+- **Key Sticking Points**: Issues like the salary floor, arbitration reform, and the overall structure of the CBA are still unresolved.
+
+#### 4. STAKEHOLDER OUTLOOK
+**a) Players and Union (MLBPA):**
+Recent news implies that the MLBPA is likely to maintain its hardline stance on key issues such as the salary cap and revenue sharing. The union has shown a willingness to use leverage, including the threat of a work stoppage, to secure favorable terms for their members.
+
+**b) Owners and MLB Management:**
+The owners are demonstrating a strong push for changes to protect league-wide financial stability, particularly through proposals like the salary cap. They appear willing to engage in negotiations but may be less flexible on certain points, given the historical reluctance of players to accept such measures.
+
+**Near-term Risk and Resolution Timeline:**
+- **Risk:** A prolonged labor dispute could severely impact the upcoming season, leading to potential cancellations or shortened schedules.
+- **Resolution Timeline:** Given the significant disagreements, a resolution is unlikely in the short term. Both sides are likely to continue negotiations until a compromise can be reached.
+
+#### 5. KEY RISKS TO WATCH
+1. **Work Stoppage**: Continued deadlock could lead to a work stoppage, disrupting the upcoming season.
+2. **Financial Impact on Teams:** A prolonged dispute could strain team finances and affect player salaries and contracts.
+3. **Player Retention**: Uncertainty may impact player decisions regarding free agency and contract negotiations.
+4. **Fan Engagement**: Fans are likely to become disenchanted with a lengthy labor dispute, potentially affecting attendance and revenue.
+5. **Legal Challenges:** Both sides could face legal challenges related to proposed changes, further delaying resolution.
+
+#### 6. ARTICLES REVIEWED
+A total of 40 articles were analyzed for this report.
+
+### Conclusion
+The current landscape of MLB CBA negotiations is fraught with tension and uncertainty. While there are signs of mutual interest in resolving disputes, significant disagreements remain unresolved. Both players and owners will need to navigate these challenges carefully to avoid a potential lockout that could have far-reaching implications for the sport.
