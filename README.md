@@ -4,201 +4,222 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white"/>
-  <img src="https://img.shields.io/badge/LLM-Ollama-000000?style=flat-square&logo=ollama&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Sentiment-VADER-4CAF50?style=flat-square"/>
-  <img src="https://img.shields.io/badge/Data-yfinance-FF6B35?style=flat-square"/>
+  <img src="https://img.shields.io/badge/AI-Local%20LLMs-black?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Architecture-Environment%20Agnostic-4CAF50?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Status-Early%20Development-orange?style=flat-square"/>
   <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square"/>
   <img src="https://img.shields.io/badge/built_by-Stage_One_Cloud-7DD3FC?style=flat-square"/>
 </p>
 
 ---
 
-## What is Cassandra?
+# Cassandra
 
-Cassandra is a modular, AI-driven market intelligence pipeline that collects news, scores sentiment, screens equities, and generates structured investment narratives — using fully local LLM inference with no cloud API dependency.
+Cassandra is an environment-agnostic framework for observing, evaluating, and comparing how language models behave under changing conditions.
 
-In Greek mythology, Cassandra was cursed to see the future clearly and never be believed. This pipeline sees market signals. What you do with them is your problem.
+Rather than measuring only whether a model completed a task, Cassandra is designed to preserve evidence about how models observe, reason, adapt, and respond as their environment, available context, and quality of information change.
 
-Built as a real research tool — not a demo. Every design decision came from running it against live data and documenting what worked, what failed, and why.
+The project began while building **OasisAI**. After repeatedly running into the practical limitations of smaller local language models, the question shifted from:
 
----
+> **"How do I make the model bigger?"**
 
-## Key Capabilities
+to
 
-**News Collection & Sentiment Scoring**
-Aggregates RSS feeds across six topic-specific channels — legalization, rescheduling, banking reform, ETFs, multi-state operators, and biomedical. Each article is deduplicated, body-extracted where possible, and scored with VADER sentiment analysis before anything touches the LLM.
+> **"What can I learn about how the model behaves?"**
 
-**LLM-Driven Market Narratives**
-Sends pre-scored article data to a local Ollama instance via HTTP API — no subprocess calls, no cloud dependency. Generates structured five-section investment intelligence reports including regulatory landscape, sector outlook, and key risks.
-
-**Survival-Focused Equity Screening**
-Traditional screeners filter cannabis stocks on profitability — which eliminates ~80% of the sector. Cassandra scores on what actually matters for early-stage cannabis equities: cash survival, revenue trajectory, liquidity, momentum, and 52-week positioning.
-
-**Persistent Watchlist**
-Flagged candidates are written to a persistent CSV watchlist with entry price and date. The screener updates conviction scores on subsequent runs without losing historical entry data.
-
-**Sector-Agnostic Architecture**
-The pipeline is pointed at cannabis because of the Schedule III rescheduling catalyst — but the architecture is domain-agnostic. Swap the RSS feeds, ticker universe, and prompt templates to target any sector, asset class, or data domain.
+That question became Cassandra.
 
 ---
 
-## Architecture
+# Design Philosophy
 
-```
+Cassandra is built around a simple principle:
+
+**Observe first. Interpret second.**
+
+Instead of treating an LLM like a black box, Cassandra captures evidence that allows experiments to be reviewed, compared, and eventually replayed.
+
+The framework is intended to answer questions such as:
+
+- How does a model respond when context changes?
+- Does additional documentation improve performance?
+- How does behavior differ between models?
+- What happens when tools become unavailable?
+- Can smaller local models perform better when the surrounding system improves?
+
+Rather than assuming larger models are always the answer, Cassandra explores how architecture, tooling, and environment influence AI behavior.
+
+---
+
+# Core Architecture
+
+```text
                     ┌─────────────────────────────┐
                     │          CASSANDRA          │
+                    │ Behavioral AI Framework     │
                     └──────────────┬──────────────┘
                                    │
           ┌────────────────────────┼────────────────────────┐
           │                        │                        │
           ▼                        ▼                        ▼
 ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
-│    COLLECT       │    │    ANALYZE       │    │    SCREEN        │
+│   OBSERVATION    │    │    REASONING     │    │    EVALUATION    │
 │                  │    │                  │    │                  │
-│ feed_to_csv_     │    │ ollama_sentiment │    │ stock_growth_    │
-│ collector.py     │    │ pipeline.py      │    │ screener.py      │
-│                  │    │                  │    │                  │
-│ • 6 topic feeds  │    │ • VADER stats    │    │ • yfinance data  │
-│ • Deduplication  │    │ • LLM narrative  │    │ • 6-dim scoring  │
-│ • Body extract   │    │ • 5-section      │    │ • Conviction     │
-│ • VADER/article  │    │   report         │    │   tiers          │
-│ • CSV output     │    │ • MD export      │    │ • Watchlist CSV  │
+│ • Screenshots    │    │ • Prompts        │    │ • Results        │
+│ • Window State   │    │ • Decisions      │    │ • Latency        │
+│ • Metadata       │    │ • Tool Usage     │    │ • Retries        │
+│ • Sensors        │    │ • Planning       │    │ • Recovery       │
 └────────┬─────────┘    └────────┬─────────┘    └────────┬─────────┘
          │                       │                       │
-         ▼                       ▼                       ▼
-  data/cannabis_          reports/sentiment_       reports/screener_
-  news_results.csv        report_[ts].md           report_[ts].md
-                                                   data/watchlist.csv
-         │                       │                        │
-         └───────────────────────┴────────────────────────┘
+         └───────────────────────┴───────────────────────┘
                                  │
                                  ▼
                     ┌────────────────────────┐
-                    │    LOCAL OLLAMA LLM    │
-                    │   (no cloud API calls) │
-                    │   http://[host]:11434  │
+                    │      ENVIRONMENTS      │
+                    │                        │
+                    │ • The Farmer Was       │
+                    │   Replaced             │
+                    │ • Market Intelligence  │
+                    │ • Desktop Apps         │
+                    │ • Browser Automation   │
+                    │ • Future Experiments   │
                     └────────────────────────┘
 ```
 
-Cassandra runs a three-stage pipeline. The **collector** pulls and scores news. The **sentiment pipeline** sends pre-analyzed data to a local Ollama instance for narrative generation. The **screener** pulls live equity data, scores candidates on survival metrics, and maintains a persistent watchlist — all without a single cloud API call for core operations.
+---
+
+# Current Experiment
+
+## Experiment 001 — The Farmer Was Replaced
+
+The first Cassandra experiment uses *The Farmer Was Replaced* as a controlled environment.
+
+The objective is **not** to automate a game.
+
+Instead, it provides a repeatable environment where model behavior can be observed, measured, and compared under controlled conditions.
+
+Current work focuses on:
+
+- Window discovery
+- Screenshot capture
+- Structured observations
+- Metadata collection
+- Observation logging
+
+Future experiments will introduce planning, memory, deterministic actions, and comparative model evaluation.
 
 ---
 
-## Tech Stack
+# Repository Structure
 
-| Layer | Technology | Role |
-|---|---|---|
-| News Collection | feedparser + BeautifulSoup | RSS aggregation and body extraction |
-| Sentiment Scoring | VADER | Per-article sentiment before LLM |
-| LLM Inference | Ollama (HTTP API) | Local narrative generation |
-| Equity Data | yfinance | Fundamentals and price history |
-| Data Layer | pandas + CSV | Pipeline state and watchlist persistence |
-| Runtime | Python 3.10+ | Core pipeline language |
-
----
-
-## Scoring Model
-
-| Dimension | Weight | Rationale |
-|---|---|---|
-| Price tier | 20pts | Sweet spot $0.10–$10 for high-potential names |
-| Liquidity | 15pts | Avg daily volume — can you actually trade it? |
-| Cash survival | 25pts | Cash-to-debt ratio — who lives long enough to win? |
-| Revenue trajectory | 20pts | Growth rate, even if not yet profitable |
-| Price momentum | 10pts | 1-month price change |
-| 52w positioning | 10pts | Distance from high — room to run vs broken chart |
-
-**Conviction tiers**: HIGH (65+) · MEDIUM (45–64) · LOW (40–44) · SKIP (<40)
-
----
-
-## Project Status
-
-| Feature | Status |
-|---|---|
-| RSS collection across 6 topic channels | ✅ Complete |
-| VADER per-article sentiment scoring | ✅ Complete |
-| Ollama HTTP API integration | ✅ Complete |
-| Survival-focused equity screener | ✅ Complete |
-| Persistent watchlist with entry prices | ✅ Complete |
-| Timestamped markdown report export | ✅ Complete |
-| Social media data layer (Reddit/X) | 📋 Planned |
-| Exit signal generation | 📋 Planned |
-| Google News URL body resolver | 📋 Planned |
-| Domain-agnostic config system | 📋 Planned |
-| Sports application (MLB Stats API) | 📋 Planned |
-| Scheduled runs via cron/Task Scheduler | 📋 Planned |
-| OasisAI Discord alert integration | 📋 Planned |
-
----
-
-## Honest Disclaimer
-
-Cassandra is a research and portfolio tool — not a trading system.
-
-The v1 of this project flagged IGC Pharma during the cannabis Schedule III rescheduling catalyst in 2024. A $20 test position was opened at $0.42. Current price: ~$0.30.
-
-The entry signal was real. The exit signal didn't exist yet. That's why v2 exists.
-
-*This is not financial advice. Past pipeline output does not guarantee future returns.*
-
----
-
-## Quick Start
-
-```bash
-# Clone
-git clone https://github.com/parzival419/cassandra.git
-cd cassandra
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Step 1 — Collect and score news
-python feed_to_csv_collector.py
-
-# Step 2 — Generate sentiment narrative
-OLLAMA_HOST=http://localhost:11434 python ollama_sentiment_pipeline.py
-
-# Step 3 — Screen equities and update watchlist
-OLLAMA_HOST=http://localhost:11434 python stock_growth_screener.py
-```
-
-**Running Ollama on a separate machine:**
-```bash
-# On the inference machine — bind to all interfaces
-OLLAMA_HOST=0.0.0.0 ollama serve
-
-# Point Cassandra at it
-OLLAMA_HOST=http://192.168.1.x:11434 python ollama_sentiment_pipeline.py
+```text
+cassandra/
+│
+├── observation/
+├── sensors/
+├── planner/
+├── evaluation/
+├── memory/
+├── actions/
+│
+docs/
+│
+experiments/
+├── the-farmer-was-replaced/
+└── future-experiments/
 ```
 
 ---
 
-## Configuration
+# Project Status
 
-| Variable | Default | Description |
-|---|---|---|
-| `OLLAMA_HOST` | `http://localhost:11434` | Ollama server address |
-| `OLLAMA_MODEL` | `qwen2.5:7b` | Model for analysis |
-| `MAX_PRICE` | `15.0` | Max stock price for screening |
-| `MAX_AGE_DAYS` | `60` | News lookback window |
-| `WATCHLIST_MIN_SCORE` | `40` | Minimum score for watchlist entry |
+| Component | Status |
+|-----------|--------|
+| Framework Architecture | 🚧 In Progress |
+| Observation Engine | ✅ Prototype Working |
+| Window Management | ✅ Working |
+| Screenshot Capture | ✅ Working |
+| Metadata Collection | ✅ Working |
+| Sensor Framework | 🚧 In Progress |
+| State Tracking | 📋 Planned |
+| Replay System | 📋 Planned |
+| Evaluation Engine | 📋 Planned |
+| Planner | 📋 Planned |
+| Memory System | 📋 Planned |
 
 ---
 
-## Built By
+# Previous Work
 
-**[Stage One Cloud](https://stageonecloud.com)** — Cloud solutions, managed IT services, and AI integration for businesses that want real infrastructure expertise without the enterprise overhead.
+Cassandra originally began as an AI-driven market intelligence platform focused on sentiment analysis, local LLM inference, and equity screening.
+
+Rather than replacing that work, Cassandra now treats it as one application of the broader framework.
+
+Future repositories may include:
+
+- Market Intelligence
+- Sports Analytics
+- Browser Automation
+- Desktop Automation
+- Robotics
+- QA and Behavioral Testing
+
+All built on the same underlying architecture.
 
 ---
 
-## Related Projects
+# Relationship to OasisAI
 
-- [OasisAI](https://github.com/parzival419/oasisAi) — Self-hosted Discord AI assistant with local LLM inference, persistent memory, and remote infrastructure management
+Cassandra and OasisAI serve different purposes.
+
+**Cassandra** asks research questions.
+
+- How do models behave?
+- What improves performance?
+- Which architectural changes matter?
+
+**OasisAI** applies those findings to build practical AI assistants and automation systems.
+
+In short:
+
+```text
+Experiments
+      │
+      ▼
+ Cassandra
+      │
+      ▼
+Knowledge
+      │
+      ▼
+ OasisAI
+```
+
+---
+
+# Roadmap
+
+- Observation Replay
+- Attention Engine
+- OCR Sensor
+- System Metrics
+- Memory Framework
+- Environment Plugins
+- Comparative Benchmarking
+- Remote Execution
+- Behavioral Metrics
+- Model Evaluation Reports
+
+---
+
+# License
+
+Released under the MIT License.
 
 ---
 
 <p align="center">
-  <sub>Cassandra is an open-source project by Stage One Cloud. MIT licensed — use it, fork it, point it at something other than cannabis stocks. Just don't blame Cassandra when it's right and you don't listen.</sub>
+Cassandra is an open-source research framework developed by Stage One Cloud.
+
+Its purpose is not to prove which AI model is "best," but to better understand how AI systems behave under changing conditions.
 </p>
