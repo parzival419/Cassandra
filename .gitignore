@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Logs
+logs/
+*.log
+
+# Embeddings
+knowledge/embeddings/
+
+# VS Code
+.vscode/
+
+# Environment
+.env
+
+# OS Files
+Thumbs.db
+.DS_Store

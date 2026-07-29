@@ -1,0 +1,13 @@
+class Environment:
+
+    def observe(self):
+        ...
+
+    def act(self):
+        ...
+
+    def reset(self):
+        ...
+
+    def state(self):
+        ...
