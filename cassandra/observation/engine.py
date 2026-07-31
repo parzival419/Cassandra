@@ -1,20 +1,23 @@
-from __future__ import annotations
+"""Coordinates sensors and produces structured observations."""
 
-from datetime import datetime, timezone
-from typing import Any
+from cassandra.observation.models import (
+    EnvironmentInfo,
+    Observation,
+)
 
 
 class ObservationEngine:
-    """Coordinates environment observations."""
+    """Creates observations from an environment and its sensors."""
 
-    def observe(self) -> dict[str, Any]:
-        """
-        Return a basic observation record.
+    def __init__(self, environment: EnvironmentInfo) -> None:
+        self._environment = environment
 
-        This is intentionally simple for now. Sensors will be added later.
-        """
-        return {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "status": "observation captured",
-            "sensors": {},
-        }
+    def observe(self) -> Observation:
+        """Capture and return the current observation."""
+
+        return Observation(
+            environment=self._environment,
+            metadata={
+                "status": "observation captured",
+            },
+        )
