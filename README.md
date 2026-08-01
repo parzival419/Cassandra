@@ -133,19 +133,24 @@ experiments/
 
 # Project Status
 
-| Component | Status |
-|-----------|--------|
+| Component              | Status         |
+| ---------------------- | -------------- |
 | Framework Architecture | 🚧 In Progress |
-| Observation Engine | ✅ Prototype Working |
-| Window Management | ✅ Working |
-| Screenshot Capture | ✅ Working |
-| Metadata Collection | ✅ Working |
-| Sensor Framework | 🚧 In Progress |
-| State Tracking | 📋 Planned |
-| Replay System | 📋 Planned |
-| Evaluation Engine | 📋 Planned |
-| Planner | 📋 Planned |
-| Memory System | 📋 Planned |
+| Application Startup    | ✅ Working      |
+| Observation Engine     | ✅ Working      |
+| Observation Model      | ✅ Working      |
+| Sensor Framework       | ✅ Working      |
+| Sensor Registry        | ✅ Working      |
+| Time Sensor            | ✅ Working      |
+| Clipboard Sensor       | ✅ Working      |
+| Window Sensor          | 📋 Planned     |
+| Screenshot Sensor      | 📋 Planned     |
+| OCR Sensor             | 📋 Planned     |
+| State Tracking         | 📋 Planned     |
+| Replay System          | 📋 Planned     |
+| Evaluation Engine      | 📋 Planned     |
+| Planner                | 📋 Planned     |
+| Memory System          | 📋 Planned     |
 
 ---
 
