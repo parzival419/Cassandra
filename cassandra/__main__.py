@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pprint import pprint
 
+from cassandra.about import APP_NAME, VERSION, DESCRIPTION
 from cassandra.observation import EnvironmentInfo, ObservationEngine
 from cassandra.observation.sensors import (
     ClipboardSensor,
@@ -13,7 +14,7 @@ from cassandra.observation.sensors import (
 
 
 def build_sensor_registry() -> SensorRegistry:
-    """Build the sensor profile used by the local demonstration."""
+    """Build the default sensor profile."""
 
     registry = SensorRegistry()
 
@@ -24,9 +25,11 @@ def build_sensor_registry() -> SensorRegistry:
 
 
 def main() -> None:
-    """Start Cassandra and capture a test observation."""
+    """Start Cassandra."""
 
-    print("Starting Cassandra...\n")
+    print(f"{APP_NAME} v{VERSION}")
+    print(DESCRIPTION)
+    print()
 
     environment = EnvironmentInfo(
         name="Development Sandbox",
@@ -34,6 +37,16 @@ def main() -> None:
     )
 
     registry = build_sensor_registry()
+
+    print(f"Environment : {environment.name}")
+    print(f"Sensors     : {len(registry)}")
+    print()
+
+    for sensor in registry:
+        print(f"✓ {sensor.name}")
+
+    print()
+    print("Collecting observation...\n")
 
     engine = ObservationEngine(
         environment=environment,
