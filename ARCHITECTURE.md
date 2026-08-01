@@ -1,422 +1,223 @@
-\# Cassandra Architecture
+# Cassandra Architecture
 
-
-
-> This document describes the architectural principles behind Cassandra.
-
+> **Project Goal**
 >
+> Cassandra is a behavior-based desktop observation framework. Its purpose is to collect structured evidence about a computer's current state so higher-level systems can reason, automate, or assist users without tightly coupling observation and decision-making.
 
-> While the codebase will evolve, the design philosophy documented here should
+---
 
-> remain stable unless an intentional architectural decision is made.
+# Current Architecture
 
+```
+                Cassandra
+                     │
+             Sensor Registry
+                     │
+          Observation Engine
+                     │
+              Observation Model
+                     │
+        Structured Observation Data
+```
 
+The Observation Engine coordinates independent sensors and produces a standardized Observation object.
 
-\---
+Each sensor has a single responsibility and contributes one piece of evidence.
 
+---
 
+# Current Components
 
-\# Vision
-
-
-
-Cassandra is an environment-agnostic AI behavioral research framework.
-
-
-
-Its purpose is to observe, evaluate, and understand how AI systems behave
-
-under changing environments and constraints.
-
-
-
-Cassandra is not tied to a single model, application, or domain.
-
-
-
-Instead, it provides a reusable framework for building experiments and
-
-applications that require structured observation and reasoning.
-
-
-
-\---
-
-
-
-\# Design Principles
-
-
-
-\## Domain Driven Design
-
-
-
-Cassandra is modeled around real-world concepts rather than implementation details.
-
-
-
-Examples include:
-
-
-
-\- Observation
-
-\- Environment
-
-\- Sensor
-
-\- Experiment
-
-\- Planner
-
-\- Memory
-
-\- Evaluation
-
-
-
-These concepts are represented as first-class objects within the framework.
-
-
-
-\---
-
-
-
-\## Single Responsibility Principle
-
-
-
-Every object should have one clearly defined responsibility.
-
-
-
-Examples:
-
-
-
-ObservationEngine
-
-
-
-Responsible for coordinating sensors and producing an Observation.
-
-
-
-WindowSensor
-
-
-
-Responsible only for gathering window information.
-
-
-
-Observation
-
-
-
-Represents the result of a completed observation.
-
-
-
-\---
-
-
-
-\## Composition Over Inheritance
-
-
-
-Whenever practical, Cassandra favors composition over deep inheritance.
-
-
-
-Objects should be assembled from smaller components with well-defined
-
-responsibilities.
-
-
-
-Example:
-
-
-
-Observation
-
-
-
-contains
-
-
-
-\- EnvironmentInfo
-
-\- VisualData
-
-\- Metadata
-
-\- State
-
-
-
-rather than inheriting behavior from multiple parent classes.
-
-
-
-\---
-
-
-
-\## Explicit Interfaces
-
-
-
-Core framework components communicate through explicit contracts.
-
-
-
-The goal is to allow components to be replaced or extended without changing
-
-the rest of the framework.
-
-
-
-Future examples include:
-
-
-
-\- Sensor
-
-\- Environment
-
-\- Planner
-
-
-
-\---
-
-
-
-\## Environment Agnostic
-
-
-
-Cassandra should never assume a specific environment.
-
-
-
-Examples of environments include:
-
-
-
-\- Games
-
-\- Desktop applications
-
-\- Browsers
-
-\- Simulations
-
-\- APIs
-
-\- Future research environments
-
-
-
-The framework should interact with all environments through common abstractions.
-
-
-
-\---
-
-
-
-\# Repository Layout
-
-
-
-Cassandra/
-
-
-
-README.md
-
-User documentation.
-
-
-
-ARCHITECTURE.md
-
-Framework architecture and design philosophy.
-
-
-
+```
 cassandra/
+│
+├── about.py
+├── __main__.py
+│
+├── observation/
+│   ├── engine.py
+│   ├── models.py
+│   └── sensors/
+│       ├── base.py
+│       ├── registry.py
+│       ├── time.py
+│       └── clipboard.py
+│
+├── planner/
+├── memory/
+├── evaluation/
+└── environments/
+```
+
+---
+
+# Observation Pipeline
+
+```
+Application Startup
+        │
+        ▼
+Create Environment
+        │
+        ▼
+Build Sensor Registry
+        │
+        ▼
+Observation Engine
+        │
+        ▼
+Execute Sensors
+        │
+        ▼
+Collect Evidence
+        │
+        ▼
+Create Observation Object
+        │
+        ▼
+Return Structured Data
+```
+
+---
+
+# Current Sensors
+
+| Sensor | Purpose | Status |
+|---------|---------|--------|
+| TimeSensor | Collect UTC timestamp and timezone | ✅ Working |
+| ClipboardSensor | Capture clipboard contents | ✅ Working |
+
+---
+
+# Observation Object
+
+Every observation follows the same schema.
+
+```text
+Observation
+├── environment
+├── visual
+├── state
+├── evidence
+├── metadata
+├── sensors
+├── observation_id
+└── timestamp
+```
+
+Because the schema is fixed, new sensors can be added without changing the overall structure.
+
+---
+
+# Project Status
+
+| Component | Status |
+|----------|--------|
+| Framework Architecture | 🚧 In Progress |
+| Application Startup | ✅ Working |
+| Observation Engine | ✅ Working |
+| Observation Model | ✅ Working |
+| Sensor Framework | ✅ Working |
+| Sensor Registry | ✅ Working |
+| Time Sensor | ✅ Working |
+| Clipboard Sensor | ✅ Working |
+| Window Sensor | 📋 Planned |
+| Screenshot Sensor | 📋 Planned |
+| OCR Sensor | 📋 Planned |
+| State Tracking | 📋 Planned |
+| Replay System | 📋 Planned |
+| Evaluation Engine | 📋 Planned |
+| Planner | 📋 Planned |
+| Memory System | 📋 Planned |
 
-Core framework implementation.
+---
 
+# Design Principles
 
+Cassandra follows several architectural principles.
 
-experiments/
+## Single Responsibility
 
-Research environments used to evaluate AI behavior.
+Each sensor performs exactly one task.
 
+```
+ClipboardSensor
+    ↓
+Clipboard only
+```
 
+---
 
-modules/
+## Composition over Inheritance
 
-Real-world applications built on Cassandra.
+The Observation Engine is composed of sensors rather than implementing sensor logic itself.
 
+```
+ObservationEngine
+    ├── TimeSensor
+    ├── ClipboardSensor
+    └── ...
+```
 
+---
 
-docs/
+## Extensibility
 
-Additional documentation.
+Adding a new capability should require:
 
+1. Create a new Sensor.
+2. Register it.
+3. Run Cassandra.
 
+The Observation Engine should not require modification.
 
-\---
+---
 
+# Near-Term Roadmap
 
+## Phase 1 – Observation
 
-\# Architectural Decisions
+- ✅ Time Sensor
+- ✅ Clipboard Sensor
+- ⬜ Window Sensor
+- ⬜ Screenshot Sensor
+- ⬜ OCR Sensor
 
+---
 
+## Phase 2 – State Awareness
 
-\## ADR-001
+- Window tracking
+- Application context
+- State model
+- Event history
 
+---
 
+## Phase 3 – Evaluation
 
-Title
+- Rule engine
+- Goal evaluation
+- Task recognition
+- Behavior analysis
 
+---
 
+## Phase 4 – Planning
 
-Observation is a first-class domain object.
+- Action selection
+- Planner
+- Execution strategies
+- Automation hooks
 
+---
 
+# Long-Term Vision
 
-Status
+Cassandra is designed as an observation framework.
 
+It answers one fundamental question:
 
+> **What is happening on this computer right now?**
 
-Accepted
-
-
-
-Reason
-
-
-
-An observation represents a complete snapshot of an environment.
-
-
-
-It is the common language shared by sensors, planners, memory,
-
-evaluation, and future modules.
-
-
-
-Observations are represented as structured objects rather than dictionaries.
-
-
-
-Date
-
-
-
-2026-07-30
-
-
-
-\---
-
-
-
-\## ADR-002
-
-
-
-Title
-
-
-
-ObservationEngine orchestrates sensors.
-
-
-
-Status
-
-
-
-Accepted
-
-
-
-Reason
-
-
-
-Sensors should remain independent.
-
-
-
-The ObservationEngine is responsible for coordinating sensor execution and
-
-assembling the resulting Observation.
-
-
-
-Date
-
-
-
-Pending
-
-
-
-\---
-
-
-
-\# Long-Term Goals
-
-
-
-The Cassandra Core framework should remain independent from any individual
-
-experiment or application.
-
-
-
-Experiments exist to answer research questions.
-
-
-
-Modules exist to solve real-world problems.
-
-
-
-Both are built upon the same core framework.
-
-
-
-\---
-
-
-
-\# Guiding Question
-
-
-
-Whenever a new feature is proposed, ask:
-
-
-
-"Does this belong in Cassandra Core, an Experiment, or a Module?"
-
-
-
-If the answer is unclear, the design should be reconsidered before implementation.
-
+Higher-level systems—including planners, AI agents, automation engines, and research assistants—can build on this structured observation layer without being coupled to the underlying sensors.
