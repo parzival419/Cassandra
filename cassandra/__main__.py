@@ -1,12 +1,15 @@
+"""Command-line entry point for Cassandra."""
+
 from __future__ import annotations
 
 from pprint import pprint
 
 from cassandra.observation import EnvironmentInfo, ObservationEngine
+from cassandra.observation.sensors import TimeSensor
 
 
 def main() -> None:
-    """Start Cassandra and capture a basic observation."""
+    """Start Cassandra and capture a test observation."""
 
     print("Starting Cassandra...\n")
 
@@ -15,10 +18,19 @@ def main() -> None:
         type="simulated",
     )
 
-    engine = ObservationEngine(environment)
+    engine = ObservationEngine(
+        environment=environment,
+        sensors=[
+            TimeSensor(),
+        ],
+    )
+
     observation = engine.observe()
 
-    pprint(observation.to_dict(), sort_dicts=False)
+    pprint(
+        observation.to_dict(),
+        sort_dicts=False,
+    )
 
 
 if __name__ == "__main__":

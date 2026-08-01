@@ -1,5 +1,7 @@
 """Domain models used by Cassandra's observation subsystem."""
 
+from __future__ import annotations
+
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any
@@ -8,7 +10,7 @@ from uuid import uuid4
 
 @dataclass(slots=True)
 class EnvironmentInfo:
-    """Identifies the environment being observed."""
+    """Identify the environment being observed."""
 
     name: str
     type: str
@@ -17,7 +19,7 @@ class EnvironmentInfo:
 
 @dataclass(slots=True)
 class VisualData:
-    """Visual information captured from the environment."""
+    """Visual information captured from an environment."""
 
     screenshot_path: str | None = None
     resolution: tuple[int, int] | None = None
@@ -30,6 +32,7 @@ class Observation:
     environment: EnvironmentInfo
     visual: VisualData = field(default_factory=VisualData)
     state: dict[str, Any] = field(default_factory=dict)
+    evidence: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
     sensors: list[str] = field(default_factory=list)
     observation_id: str = field(
