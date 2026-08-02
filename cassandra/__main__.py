@@ -8,6 +8,7 @@ from cassandra.about import APP_NAME, VERSION, DESCRIPTION
 from cassandra.observation import EnvironmentInfo, ObservationEngine
 from cassandra.observation.sensors import (
     ClipboardSensor,
+    ScreenshotSensor,
     SensorRegistry,
     TimeSensor,
     WindowSensor,
@@ -21,6 +22,7 @@ def build_sensor_registry() -> SensorRegistry:
 
     registry.register(TimeSensor())
     registry.register(WindowSensor())
+    registry.register(ScreenshotSensor())
     registry.register(ClipboardSensor())
 
     return registry
