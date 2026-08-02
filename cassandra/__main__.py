@@ -10,6 +10,7 @@ from cassandra.observation.sensors import (
     ClipboardSensor,
     SensorRegistry,
     TimeSensor,
+    WindowSensor,
 )
 
 
@@ -19,10 +20,10 @@ def build_sensor_registry() -> SensorRegistry:
     registry = SensorRegistry()
 
     registry.register(TimeSensor())
+    registry.register(WindowSensor())
     registry.register(ClipboardSensor())
 
     return registry
-
 
 def main() -> None:
     """Start Cassandra."""
