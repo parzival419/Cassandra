@@ -4,8 +4,12 @@ from __future__ import annotations
 
 from pprint import pprint
 
-from cassandra.about import APP_NAME, VERSION, DESCRIPTION
-from cassandra.observation import EnvironmentInfo, ObservationEngine
+from cassandra.about import APP_NAME, DESCRIPTION, VERSION
+from cassandra.observation import (
+    EnvironmentInfo,
+    ObservationEngine,
+    ObservationStore,
+)
 from cassandra.observation.sensors import (
     ClipboardSensor,
     ScreenshotSensor,
@@ -26,6 +30,7 @@ def build_sensor_registry() -> SensorRegistry:
     registry.register(ClipboardSensor())
 
     return registry
+
 
 def main() -> None:
     """Start Cassandra."""
@@ -58,10 +63,16 @@ def main() -> None:
 
     observation = engine.observe()
 
+    store = ObservationStore()
+    observation_path = store.save(observation)
+
     pprint(
         observation.to_dict(),
         sort_dicts=False,
     )
+
+    print()
+    print(f"Observation saved: {observation_path}")
 
 
 if __name__ == "__main__":

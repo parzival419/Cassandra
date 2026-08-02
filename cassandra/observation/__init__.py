@@ -7,11 +7,13 @@ from cassandra.observation.models import (
     Observation,
     VisualData,
 )
+from cassandra.observation.store import ObservationStore
 
 __all__ = [
     "EnvironmentInfo",
     "Observation",
     "ObservationBuilder",
     "ObservationEngine",
+    "ObservationStore",
     "VisualData",
 ]
