@@ -75,6 +75,45 @@ class ObservationStore:
     def latest(self) -> Path:
         """Return the most recently modified observation file."""
 
+        observation_files = self._sorted_observation_files()
+
+        if not observation_files:
+            raise FileNotFoundError(
+                "No saved observations were found in: "
+                f"{self._output_directory}"
+            )
+
+        return observation_files[-1].resolve()
+
+    def latest_two(
+        self,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        """Load the two newest observations in chronological order."""
+
+        observation_files = self._sorted_observation_files()
+
+        if len(observation_files) < 2:
+            raise FileNotFoundError(
+                "At least two saved observations are required in: "
+                f"{self._output_directory}"
+            )
+
+        previous_path = observation_files[-2]
+        current_path = observation_files[-1]
+
+        previous = self.load(previous_path)
+        current = self.load(current_path)
+
+        return previous, current
+
+    def load_latest(self) -> dict[str, Any]:
+        """Load the most recently saved observation."""
+
+        return self.load(self.latest())
+
+    def _sorted_observation_files(self) -> list[Path]:
+        """Return saved observation files ordered from oldest to newest."""
+
         if not self._output_directory.exists():
             raise FileNotFoundError(
                 "Observation directory does not exist: "
@@ -85,18 +124,7 @@ class ObservationStore:
             self._output_directory.glob("obs_*.json")
         )
 
-        if not observation_files:
-            raise FileNotFoundError(
-                "No saved observations were found in: "
-                f"{self._output_directory}"
-            )
-
-        return max(
+        return sorted(
             observation_files,
             key=lambda path: path.stat().st_mtime,
-        ).resolve()
-
-    def load_latest(self) -> dict[str, Any]:
-        """Load the most recently saved observation."""
-
-        return self.load(self.latest())
+        )
