@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from time import perf_counter
 from typing import Any
 
+from cassandra.observation.builder import ObservationBuilder
 from cassandra.observation.models import EnvironmentInfo, Observation
 from cassandra.observation.sensors import Sensor
 
@@ -27,10 +28,9 @@ class ObservationEngine:
         """Run all configured sensors and return one observation."""
 
         started_at = perf_counter()
+        builder = ObservationBuilder(self._environment)
 
-        evidence, successful_sensors, sensor_errors = (
-            self._collect_evidence()
-        )
+        sensor_errors = self._collect_sensor_results(builder)
 
         duration_ms = round(
             (perf_counter() - started_at) * 1000,
@@ -39,45 +39,43 @@ class ObservationEngine:
 
         metadata = self._build_metadata(
             duration_ms=duration_ms,
-            successful_sensors=successful_sensors,
+            successful_sensor_count=len(builder.build().sensors),
             sensor_errors=sensor_errors,
         )
 
-        return self._create_observation(
-            evidence=evidence,
-            successful_sensors=successful_sensors,
-            metadata=metadata,
-        )
+        builder.set_metadata(metadata)
 
-    def _collect_evidence(
+        return builder.build()
+
+    def _collect_sensor_results(
         self,
-    ) -> tuple[
-        dict[str, Any],
-        list[str],
-        dict[str, dict[str, str]],
-    ]:
-        """Execute sensors and collect their evidence and errors."""
+        builder: ObservationBuilder,
+    ) -> dict[str, dict[str, str]]:
+        """Execute sensors and add successful results to the builder."""
 
-        evidence: dict[str, Any] = {}
-        successful_sensors: list[str] = []
         sensor_errors: dict[str, dict[str, str]] = {}
 
         for sensor in self._sensors:
             try:
-                evidence[sensor.name] = sensor.capture()
-                successful_sensors.append(sensor.name)
+                result = sensor.capture()
+
+                builder.add_sensor_result(
+                    sensor_name=sensor.name,
+                    result=result,
+                )
+
             except Exception as exc:
                 sensor_errors[sensor.name] = {
                     "error_type": type(exc).__name__,
                     "message": str(exc),
                 }
 
-        return evidence, successful_sensors, sensor_errors
+        return sensor_errors
 
     def _build_metadata(
         self,
         duration_ms: float,
-        successful_sensors: list[str],
+        successful_sensor_count: int,
         sensor_errors: dict[str, dict[str, str]],
     ) -> dict[str, Any]:
         """Build metadata describing the observation process."""
@@ -92,7 +90,7 @@ class ObservationEngine:
             "status": status,
             "duration_ms": duration_ms,
             "configured_sensor_count": len(self._sensors),
-            "successful_sensor_count": len(successful_sensors),
+            "successful_sensor_count": successful_sensor_count,
             "failed_sensor_count": len(sensor_errors),
         }
 
@@ -100,21 +98,6 @@ class ObservationEngine:
             metadata["sensor_errors"] = sensor_errors
 
         return metadata
-
-    def _create_observation(
-        self,
-        evidence: dict[str, Any],
-        successful_sensors: list[str],
-        metadata: dict[str, Any],
-    ) -> Observation:
-        """Create the final structured observation."""
-
-        return Observation(
-            environment=self._environment,
-            evidence=evidence,
-            metadata=metadata,
-            sensors=successful_sensors,
-        )
 
     def _validate_sensor_names(self) -> None:
         """Reject duplicate sensor identifiers."""
