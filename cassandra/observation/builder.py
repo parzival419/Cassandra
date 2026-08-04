@@ -9,13 +9,22 @@ from cassandra.observation.models import (
     Observation,
     VisualData,
 )
+from cassandra.observation.normalization import WindowNormalizer
 
 
 class ObservationBuilder:
     """Assemble sensor results into an Observation domain object."""
 
-    def __init__(self, environment: EnvironmentInfo) -> None:
+    def __init__(
+        self,
+        environment: EnvironmentInfo,
+        window_normalizer: WindowNormalizer | None = None,
+    ) -> None:
         self._environment = environment
+        self._window_normalizer = (
+            window_normalizer or WindowNormalizer()
+        )
+
         self._visual = VisualData()
         self._state: dict[str, Any] = {}
         self._evidence: dict[str, Any] = {}
@@ -33,7 +42,7 @@ class ObservationBuilder:
 
         match sensor_name:
             case "window":
-                self._state["window"] = result
+                self._add_window_result(result)
 
             case "screenshot":
                 self._add_screenshot_result(result)
@@ -63,6 +72,26 @@ class ObservationBuilder:
             metadata=self._metadata,
             sensors=list(self._successful_sensors),
         )
+
+    def _add_window_result(
+        self,
+        result: dict[str, Any],
+    ) -> None:
+        """Preserve raw window data and add normalized meaning."""
+
+        raw_title = result.get("title")
+
+        if not isinstance(raw_title, str):
+            raw_title = None
+
+        normalized = self._window_normalizer.normalize(
+            raw_title
+        )
+
+        self._state["window"] = {
+            "raw": dict(result),
+            "normalized": normalized.to_dict(),
+        }
 
     def _add_screenshot_result(
         self,

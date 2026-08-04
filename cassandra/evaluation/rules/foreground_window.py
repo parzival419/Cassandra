@@ -1,4 +1,4 @@
-"""Rule for interpreting foreground-window title changes."""
+"""Rule for interpreting foreground-application changes."""
 
 from __future__ import annotations
 
@@ -11,21 +11,21 @@ from cassandra.observation.comparison import ObservationDifference
 
 
 class ForegroundWindowRule(EvaluationRule):
-    """Interpret a change to the foreground window title."""
+    """Interpret a change to the normalized foreground application."""
 
-    TARGET_PATH = "state.window.title"
+    TARGET_PATH = "state.window.normalized.application"
 
     @property
     def name(self) -> str:
         """Return the rule's stable identifier."""
 
-        return "foreground_window_change"
+        return "foreground_application_change"
 
     def evaluate(
         self,
         difference: ObservationDifference,
     ) -> list[Finding]:
-        """Return findings for foreground-window title changes."""
+        """Return findings for foreground-application changes."""
 
         findings: list[Finding] = []
 
@@ -33,15 +33,18 @@ class ForegroundWindowRule(EvaluationRule):
             if change.path != self.TARGET_PATH:
                 continue
 
+            if change.before is None or change.after is None:
+                continue
+
             findings.append(
                 Finding(
                     title="Foreground application changed",
                     summary=(
-                        "The active foreground application or window changed."
+                        "The active foreground application changed."
                     ),
                     reason=(
-                        "The foreground window title changed between "
-                        "the previous and current observations."
+                        "The normalized foreground application differed "
+                        "between the previous and current observations."
                     ),
                     confidence=ConfidenceLevel.HIGH,
                     rule_name=self.name,
