@@ -10,7 +10,10 @@ from cassandra.evaluation import (
     EvaluationResult,
     RuleRegistry,
 )
-from cassandra.evaluation.rules import ForegroundWindowRule
+from cassandra.evaluation.rules import (
+    ActiveDocumentRule,
+    ForegroundWindowRule,
+)
 from cassandra.observation import (
     EnvironmentInfo,
     ObservationEngine,
@@ -45,6 +48,7 @@ def build_rule_registry() -> RuleRegistry:
     registry = RuleRegistry()
 
     registry.register(ForegroundWindowRule())
+    registry.register(ActiveDocumentRule())
 
     return registry
 
