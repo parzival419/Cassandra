@@ -2,10 +2,12 @@
 
 from cassandra.memory.behavior.builder import TimelineBuilder
 from cassandra.memory.behavior.models import BehaviorEvent
+from cassandra.memory.behavior.store import TimelineStore
 from cassandra.memory.behavior.timeline import BehaviorTimeline
 
 __all__ = [
     "BehaviorEvent",
     "BehaviorTimeline",
     "TimelineBuilder",
+    "TimelineStore",
 ]
