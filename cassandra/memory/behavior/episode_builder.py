@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 
+from cassandra.memory.behavior.classifier import EpisodeClassifier
 from cassandra.memory.behavior.episodes import BehaviorEpisode
 from cassandra.memory.behavior.models import BehaviorEvent
 from cassandra.memory.behavior.timeline import BehaviorTimeline
@@ -22,6 +23,7 @@ class EpisodeBuilder:
             )
 
         self._inactivity_threshold = inactivity_threshold
+        self._classifier = EpisodeClassifier()
 
     def build(
         self,
@@ -64,10 +66,13 @@ class EpisodeBuilder:
             current_episode.close(
                 ended_at=previous_event.timestamp
             )
+
+            self._classifier.apply(current_episode)
             episodes.append(current_episode)
 
             current_episode = self._start_episode(event)
 
+        self._classifier.apply(current_episode)
         episodes.append(current_episode)
 
         return episodes
