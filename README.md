@@ -145,6 +145,18 @@ experiments/
 | **Phase 5** | Closed-Loop Agent | 📋 Planned | Observe → Reason → Act → Observe feedback loop |
 | **Phase 6** | Experimental Environments | 📋 Planned | Controlled interaction with *The Farmer Was Replaced* for behavioral research |
 
+| Layer | Purpose | Status |
+|--------|---------|:------:|
+| Sensors | Capture evidence from the environment | ✅ Complete |
+| Observation | Normalize sensor output | ✅ Complete |
+| Evaluation | Detect meaningful changes | 🟡 Working |
+| Behavior Memory | Record behavioral events over time | 🟡 Working |
+| Episodic Memory | Group behaviors into activities | 🚧 In Development |
+| Semantic Memory | Learn recurring concepts and patterns | 📋 Planned |
+| Interaction Layer | Execute keyboard and mouse actions | 📋 Planned |
+| Planning | Select actions based on observations | 📋 Planned |
+| Autonomous Agent | Complete closed-loop reasoning | 📋 Planned |
+
 | Stage | Cassandra Capability | Farmer Interaction |
 |--------|----------------------|--------------------|
 | Stage 1 | Observe | Watch gameplay only |
