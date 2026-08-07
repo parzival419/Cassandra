@@ -14,6 +14,10 @@ from cassandra.evaluation.rules import (
     ActiveDocumentRule,
     ForegroundWindowRule,
 )
+from cassandra.memory.behavior import (
+    TimelineBuilder,
+    TimelineStore,
+)
 from cassandra.observation import (
     EnvironmentInfo,
     ObservationEngine,
@@ -75,8 +79,31 @@ def print_evaluation_result(result: EvaluationResult) -> None:
         print()
 
 
+def update_behavior_timeline(
+    evaluation_result: EvaluationResult,
+) -> None:
+    """Add evaluation findings to persistent behavioral memory."""
+
+    timeline_store = TimelineStore()
+    timeline = timeline_store.load_or_create()
+
+    timeline_builder = TimelineBuilder()
+
+    added_events = timeline_builder.add_to_timeline(
+        result=evaluation_result,
+        timeline=timeline,
+    )
+
+    timeline_path = timeline_store.save(timeline)
+
+    print()
+    print(f"Behavior timeline saved: {timeline_path}")
+    print(f"Behavior events added   : {len(added_events)}")
+    print(f"Behavior events remembered: {len(timeline)}")
+
+
 def main() -> None:
-    """Capture, persist, compare, and evaluate an observation."""
+    """Capture, persist, compare, evaluate, and remember behavior."""
 
     print(f"{APP_NAME} v{VERSION}")
     print(DESCRIPTION)
@@ -106,8 +133,8 @@ def main() -> None:
 
     observation = observation_engine.observe()
 
-    store = ObservationStore()
-    observation_path = store.save(observation)
+    observation_store = ObservationStore()
+    observation_path = observation_store.save(observation)
 
     pprint(
         observation.to_dict(),
@@ -118,7 +145,7 @@ def main() -> None:
     print(f"Observation saved: {observation_path}")
 
     try:
-        previous, current = store.latest_two()
+        previous, current = observation_store.latest_two()
     except FileNotFoundError:
         print()
         print(
@@ -143,6 +170,7 @@ def main() -> None:
     )
 
     print_evaluation_result(evaluation_result)
+    update_behavior_timeline(evaluation_result)
 
 
 if __name__ == "__main__":
