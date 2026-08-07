@@ -5,6 +5,7 @@ from __future__ import annotations
 from cassandra.evaluation import EvaluationResult, Finding
 from cassandra.memory.behavior.models import BehaviorEvent
 from cassandra.memory.behavior.timeline import BehaviorTimeline
+from cassandra.memory.behavior.classifier import EpisodeClassifier
 
 
 class TimelineBuilder:
