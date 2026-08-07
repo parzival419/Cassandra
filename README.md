@@ -145,6 +145,15 @@ experiments/
 | **Phase 5** | Closed-Loop Agent | 📋 Planned | Observe → Reason → Act → Observe feedback loop |
 | **Phase 6** | Autonomous Experiments | 📋 Planned | Controlled interaction with *The Farmer Was Replaced* for behavioral research |
 
+| Stage | Cassandra Capability | Farmer Interaction |
+|--------|----------------------|--------------------|
+| Stage 1 | Observe | Watch gameplay only |
+| Stage 2 | Understand | Identify behaviors and build episodes |
+| Stage 3 | Interact | Press individual keys and observe results |
+| Stage 4 | Manipulate | Keyboard + mouse control with continuous observation |
+| Stage 5 | Learn | Remember successful and unsuccessful interactions |
+| Stage 6 | Act Autonomously | Complete closed-loop experimentation within the environment |
+
 ---
 
 # Previous Work
