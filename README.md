@@ -143,7 +143,7 @@ experiments/
 | **Phase 3** | Semantic Memory | 📋 Planned | Extract long-term knowledge and recurring behavioral patterns |
 | **Phase 4** | Environment Interaction | 📋 Planned | Keyboard, mouse, and window interaction APIs |
 | **Phase 5** | Closed-Loop Agent | 📋 Planned | Observe → Reason → Act → Observe feedback loop |
-| **Phase 6** | Autonomous Experiments | 📋 Planned | Controlled interaction with *The Farmer Was Replaced* for behavioral research |
+| **Phase 6** | Experimental Environments | 📋 Planned | Controlled interaction with *The Farmer Was Replaced* for behavioral research |
 
 | Stage | Cassandra Capability | Farmer Interaction |
 |--------|----------------------|--------------------|
