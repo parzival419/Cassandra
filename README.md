@@ -133,24 +133,17 @@ experiments/
 
 # Project Status
 
-| Component              | Status         |
-| ---------------------- | -------------- |
-| Framework Architecture | 🚧 In Progress |
-| Application Startup    | ✅ Working      |
-| Observation Engine     | ✅ Working      |
-| Observation Model      | ✅ Working      |
-| Sensor Framework       | ✅ Working      |
-| Sensor Registry        | ✅ Working      |
-| Time Sensor            | ✅ Working      |
-| Clipboard Sensor       | ✅ Working      |
-| Window Sensor          | 📋 Planned     |
-| Screenshot Sensor      | 📋 Planned     |
-| OCR Sensor             | 📋 Planned     |
-| State Tracking         | 📋 Planned     |
-| Replay System          | 📋 Planned     |
-| Evaluation Engine      | 📋 Planned     |
-| Planner                | 📋 Planned     |
-| Memory System          | 📋 Planned     |
+## Cassandra Development Roadmap
+
+| Phase | Objective | Status | Deliverables |
+|-------|-----------|:------:|--------------|
+| **Phase 0** | Foundation | ✅ Complete | Application startup, sensor framework, observation engine, observation model |
+| **Phase 1** | Perception & Understanding | 🟡 In Progress | Evaluation engine, behavior events, persistent behavior timeline |
+| **Phase 2** | Episodic Memory | 🚧 Current Focus | Group behavior events into meaningful work sessions (episodes) |
+| **Phase 3** | Semantic Memory | 📋 Planned | Extract long-term knowledge and recurring behavioral patterns |
+| **Phase 4** | Environment Interaction | 📋 Planned | Keyboard, mouse, and window interaction APIs |
+| **Phase 5** | Closed-Loop Agent | 📋 Planned | Observe → Reason → Act → Observe feedback loop |
+| **Phase 6** | Autonomous Experiments | 📋 Planned | Controlled interaction with *The Farmer Was Replaced* for behavioral research |
 
 ---
 
