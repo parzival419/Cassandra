@@ -15,6 +15,7 @@ from cassandra.evaluation.rules import (
     ForegroundWindowRule,
 )
 from cassandra.memory.behavior import (
+    EpisodeBuilder,
     TimelineBuilder,
     TimelineStore,
 )
@@ -57,7 +58,9 @@ def build_rule_registry() -> RuleRegistry:
     return registry
 
 
-def print_evaluation_result(result: EvaluationResult) -> None:
+def print_evaluation_result(
+    result: EvaluationResult,
+) -> None:
     """Print findings produced by the evaluation engine."""
 
     print()
@@ -69,7 +72,10 @@ def print_evaluation_result(result: EvaluationResult) -> None:
         print("No meaningful findings detected.")
         return
 
-    for index, finding in enumerate(result.findings, start=1):
+    for index, finding in enumerate(
+        result.findings,
+        start=1,
+    ):
         print(f"{index}. {finding.title}")
         print(f"   {finding.summary}")
         print(f"   Before     : {finding.before}")
@@ -100,6 +106,66 @@ def update_behavior_timeline(
     print(f"Behavior timeline saved: {timeline_path}")
     print(f"Behavior events added   : {len(added_events)}")
     print(f"Behavior events remembered: {len(timeline)}")
+
+
+def print_behavior_episodes() -> None:
+    """Build and print classified behavioral episodes from saved memory."""
+
+    timeline_store = TimelineStore()
+    timeline = timeline_store.load_or_create()
+
+    episode_builder = EpisodeBuilder()
+    episodes = episode_builder.build(timeline)
+
+    print()
+    print("Behavior Episodes")
+    print("=================")
+    print()
+
+    if not episodes:
+        print("No behavioral episodes detected.")
+        return
+
+    for index, episode in enumerate(
+        episodes,
+        start=1,
+    ):
+        classification = episode.metadata.get(
+            "classification",
+            {},
+        )
+
+        confidence = classification.get(
+            "confidence",
+            "unknown",
+        )
+
+        print(f"{index}. {episode.title}")
+        print(f"   Type       : {episode.episode_type}")
+        print(f"   Events     : {episode.event_count}")
+        print(
+            f"   Started    : "
+            f"{episode.started_at.isoformat()}"
+        )
+
+        if episode.ended_at is None:
+            print("   Ended      : active")
+        else:
+            print(
+                f"   Ended      : "
+                f"{episode.ended_at.isoformat()}"
+            )
+
+        if episode.duration_seconds is None:
+            print("   Duration   : active")
+        else:
+            print(
+                f"   Duration   : "
+                f"{episode.duration_seconds} seconds"
+            )
+
+        print(f"   Confidence : {confidence}")
+        print()
 
 
 def main() -> None:
@@ -134,7 +200,9 @@ def main() -> None:
     observation = observation_engine.observe()
 
     observation_store = ObservationStore()
-    observation_path = observation_store.save(observation)
+    observation_path = observation_store.save(
+        observation
+    )
 
     pprint(
         observation.to_dict(),
@@ -145,12 +213,14 @@ def main() -> None:
     print(f"Observation saved: {observation_path}")
 
     try:
-        previous, current = observation_store.latest_two()
+        previous, current = (
+            observation_store.latest_two()
+        )
     except FileNotFoundError:
         print()
         print(
-            "Evaluation skipped: at least two saved observations "
-            "are required."
+            "Evaluation skipped: at least two saved "
+            "observations are required."
         )
         return
 
@@ -171,6 +241,7 @@ def main() -> None:
 
     print_evaluation_result(evaluation_result)
     update_behavior_timeline(evaluation_result)
+    print_behavior_episodes()
 
 
 if __name__ == "__main__":
