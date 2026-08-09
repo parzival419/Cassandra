@@ -16,6 +16,7 @@ from cassandra.evaluation.rules import (
 )
 from cassandra.memory.behavior import (
     EpisodeBuilder,
+    EpisodeStore,
     TimelineBuilder,
     TimelineStore,
 )
@@ -105,17 +106,23 @@ def update_behavior_timeline(
     print()
     print(f"Behavior timeline saved: {timeline_path}")
     print(f"Behavior events added   : {len(added_events)}")
-    print(f"Behavior events remembered: {len(timeline)}")
+    print(
+        f"Behavior events remembered: "
+        f"{len(timeline)}"
+    )
 
 
 def print_behavior_episodes() -> None:
-    """Build and print classified behavioral episodes from saved memory."""
+    """Build, persist, and print classified behavioral episodes."""
 
     timeline_store = TimelineStore()
     timeline = timeline_store.load_or_create()
 
     episode_builder = EpisodeBuilder()
     episodes = episode_builder.build(timeline)
+
+    episode_store = EpisodeStore()
+    episode_path = episode_store.save(episodes)
 
     print()
     print("Behavior Episodes")
@@ -124,6 +131,11 @@ def print_behavior_episodes() -> None:
 
     if not episodes:
         print("No behavioral episodes detected.")
+        print()
+        print(
+            f"Behavior episodes saved: "
+            f"{episode_path}"
+        )
         return
 
     for index, episode in enumerate(
@@ -141,8 +153,14 @@ def print_behavior_episodes() -> None:
         )
 
         print(f"{index}. {episode.title}")
-        print(f"   Type       : {episode.episode_type}")
-        print(f"   Events     : {episode.event_count}")
+        print(
+            f"   Type       : "
+            f"{episode.episode_type}"
+        )
+        print(
+            f"   Events     : "
+            f"{episode.event_count}"
+        )
         print(
             f"   Started    : "
             f"{episode.started_at.isoformat()}"
@@ -164,8 +182,16 @@ def print_behavior_episodes() -> None:
                 f"{episode.duration_seconds} seconds"
             )
 
-        print(f"   Confidence : {confidence}")
+        print(
+            f"   Confidence : "
+            f"{confidence}"
+        )
         print()
+
+    print(
+        f"Behavior episodes saved: "
+        f"{episode_path}"
+    )
 
 
 def main() -> None:
@@ -210,12 +236,13 @@ def main() -> None:
     )
 
     print()
-    print(f"Observation saved: {observation_path}")
+    print(
+        f"Observation saved: "
+        f"{observation_path}"
+    )
 
     try:
-        previous, current = (
-            observation_store.latest_two()
-        )
+        previous, current = observation_store.latest_two()
     except FileNotFoundError:
         print()
         print(
@@ -239,8 +266,14 @@ def main() -> None:
         difference,
     )
 
-    print_evaluation_result(evaluation_result)
-    update_behavior_timeline(evaluation_result)
+    print_evaluation_result(
+        evaluation_result
+    )
+
+    update_behavior_timeline(
+        evaluation_result
+    )
+
     print_behavior_episodes()
 
 
