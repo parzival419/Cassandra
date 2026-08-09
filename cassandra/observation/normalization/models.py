@@ -16,6 +16,7 @@ class NormalizedWindow:
     workspace: str | None = None
     is_elevated: bool = False
     parser_name: str = "generic"
+    is_dirty: bool = False
 
     @property
     def is_identified(self) -> bool:

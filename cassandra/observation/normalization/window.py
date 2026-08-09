@@ -10,6 +10,7 @@ class WindowNormalizer:
 
     VSCODE_APPLICATION = "Visual Studio Code"
     ELEVATED_SUFFIX = " [Administrator]"
+    VSCODE_DIRTY_PREFIX = "● "
 
     def normalize(
         self,
@@ -70,6 +71,7 @@ class WindowNormalizer:
 
         document: str | None = None
         workspace: str | None = None
+        is_dirty = False
 
         if len(parts) >= 2:
             document = parts[0]
@@ -78,12 +80,22 @@ class WindowNormalizer:
         elif len(parts) == 1:
             workspace = parts[0]
 
+        if (
+            document is not None
+            and document.startswith(self.VSCODE_DIRTY_PREFIX)
+        ):
+            is_dirty = True
+            document = document.removeprefix(
+                self.VSCODE_DIRTY_PREFIX
+            ).strip()
+
         return NormalizedWindow(
             raw_title=raw_title,
             application=self.VSCODE_APPLICATION,
             document=document,
             workspace=workspace,
             is_elevated=is_elevated,
+            is_dirty=is_dirty,
             parser_name="vscode",
         )
 
