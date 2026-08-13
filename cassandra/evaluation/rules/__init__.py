@@ -8,4 +8,9 @@ from cassandra.evaluation.rules.foreground_window import (
 __all__ = [
     "ActiveDocumentRule",
     "ForegroundWindowRule",
+    "DocumentDirtyStateRule",
 ]
+
+from cassandra.evaluation.rules.document_dirty_state import (
+    DocumentDirtyStateRule,
+)

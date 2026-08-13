@@ -1,4 +1,4 @@
-"""Command-line entry point for Cassandra."""
+"""Command-line entry point for Cassandra. test"""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from cassandra.evaluation import (
 )
 from cassandra.evaluation.rules import (
     ActiveDocumentRule,
+    DocumentDirtyStateRule,
     ForegroundWindowRule,
 )
 from cassandra.memory.behavior import (
@@ -55,6 +56,7 @@ def build_rule_registry() -> RuleRegistry:
 
     registry.register(ForegroundWindowRule())
     registry.register(ActiveDocumentRule())
+    registry.register(DocumentDirtyStateRule())
 
     return registry
 
