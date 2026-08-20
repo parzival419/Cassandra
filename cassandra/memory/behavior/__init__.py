@@ -11,6 +11,8 @@ from cassandra.memory.behavior.models import BehaviorEvent
 from cassandra.memory.behavior.store import TimelineStore
 from cassandra.memory.behavior.timeline import BehaviorTimeline
 from cassandra.memory.behavior.episode_store import EpisodeStore
+from cassandra.memory.behavior.summary import BehaviorSummary
+from cassandra.memory.behavior.summarizer import BehaviorSummarizer
 
 __all__ = [
     "BehaviorEpisode",
@@ -22,4 +24,5 @@ __all__ = [
     "TimelineBuilder",
     "TimelineStore",
     "EpisodeStore",
+    "BehaviorSummarizer",
 ]
