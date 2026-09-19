@@ -5,6 +5,7 @@ from cassandra.execution.executor import (
 from cassandra.execution.ollama import OllamaExecutor
 from cassandra.execution.request import ActionRequest
 from cassandra.execution.result import ActionResult
+from cassandra.execution.builder import ActionRequestBuilder
 
 
 __all__ = [
@@ -13,4 +14,5 @@ __all__ = [
     "DeterministicExecutor",
     "Executor",
     "OllamaExecutor",
+    "ActionRequestBuilder",
 ]
