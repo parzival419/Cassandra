@@ -68,3 +68,57 @@ class ScreenshotSensor(Sensor):
             }
         finally:
             image.close()
+
+    def capture_region(
+        self,
+        bounds: tuple[int, int, int, int],
+    ) -> dict[str, Any]:
+        """Capture and persist a bounded region of the virtual desktop."""
+
+        captured_at = datetime.now(timezone.utc)
+
+        self._output_directory.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        filename = (
+            f"{captured_at:%Y%m%dT%H%M%S_%fZ}_"
+            f"{uuid4().hex[:8]}.png"
+        )
+
+        screenshot_path = self._output_directory / filename
+
+        image = ImageGrab.grab(
+            bbox=bounds,
+            all_screens=True,
+        )
+
+        try:
+            image.save(
+                screenshot_path,
+                format="PNG",
+            )
+
+            width, height = image.size
+
+            return {
+                "available": True,
+                "path": str(screenshot_path.resolve()),
+                "format": "PNG",
+                "width": width,
+                "height": height,
+                "resolution": {
+                    "width": width,
+                    "height": height,
+                },
+                "bounds": {
+                    "left": bounds[0],
+                    "top": bounds[1],
+                    "right": bounds[2],
+                    "bottom": bounds[3],
+                },
+                "captured_at": captured_at.isoformat(),
+            }
+        finally:
+            image.close()
